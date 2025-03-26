@@ -3,61 +3,51 @@
 </p> -->
 ![Continuous Integration](https://github.com/GoogleCloudPlatform/microservices-demo/workflows/Continuous%20Integration%20-%20Main/Release/badge.svg)
 
-**Online Boutique** is a cloud-first microservices demo application.  The application is a
-web-based e-commerce app where users can browse items, add them to the cart, and purchase them.
+Online Boutique是一款云优先的微服务演示应用程序。该应用程序是一款基于 Web 的电子商务应用程序，用户可以在其中浏览商品、将其添加到购物车并购买。
 
-Google uses this application to demonstrate how developers can modernize enterprise applications using Google Cloud products, including: [Google Kubernetes Engine (GKE)](https://cloud.google.com/kubernetes-engine), [Cloud Service Mesh (CSM)](https://cloud.google.com/service-mesh), [gRPC](https://grpc.io/), [Cloud Operations](https://cloud.google.com/products/operations), [Spanner](https://cloud.google.com/spanner), [Memorystore](https://cloud.google.com/memorystore), [AlloyDB](https://cloud.google.com/alloydb), and [Gemini](https://ai.google.dev/). This application works on any Kubernetes cluster.
+Google 使用此应用程序来演示开发人员如何使用 Google Cloud 产品对企业应用程序进行现代化改造，这些产品包括：Google Kubernetes Engine (GKE)、Cloud Service Mesh (CSM)、gRPC、Cloud Operations、Spanner、Memorystore、AlloyDB和Gemini。此应用程序适用于任何 Kubernetes 集群。
 
-If you’re using this demo, please **★Star** this repository to show your interest!
+## 架构
 
-**Note to Googlers:** Please fill out the form at [go/microservices-demo](http://go/microservices-demo).
-
-## Architecture
-
-**Online Boutique** is composed of 11 microservices written in different
-languages that talk to each other over gRPC.
+**Online Boutique** 由 11 个用不同语言编写的微服务组成，这些微服务通过 gRPC 相互通信。.
 
 [![Architecture of
 microservices](/docs/img/architecture-diagram.png)](/docs/img/architecture-diagram.png)
 
-Find **Protocol Buffers Descriptions** at the [`./protos` directory](/protos).
+| 服务                                                  | 语言            | 描述                                            |
+|-----------------------------------------------------|---------------|-----------------------------------------------|
+| [frontend](/src/frontend)                           | Go            | 用户无需注册/登录，并自动为所有用户生成会话 ID免登录.                 |
+| [cartservice](/src/cartservice)                     | C#            | 用户购物车中的商品存储在Redis中并检索.                        |
+| [productcatalogservice](/src/productcatalogservice) | Go            | 提供来自 JSON 文件的产品列表以及搜索产品和获取单个产品的能力.            |
+| [currencyservice](/src/currencyservice)             | Node.js       | 将一种货币金额转换为另一种货币。使用从欧洲中央银行获取的实际值。这是 QPS 最高的服务. |
+| [paymentservice](/src/paymentservice)               | Node.js       | 使用给定的信用卡信息（模拟）收取给定的金额并返回交易 ID.                |
+| [shippingservice](/src/shippingservice)             | Go            | 根据购物车提供运费估算。将物品运送到指定地址（模拟）                    |
+| [emailservice](/src/emailservice)                   | Python        | 向用户发送订单确认电子邮件（模拟）                             |
+| [checkoutservice](/src/checkoutservice)             | Go            | 检索用户购物车，准备订单并安排付款、运输和电子邮件通知。                  |
+| [recommendationservice](/src/recommendationservice) | Python        | 根据购物车中的内容推荐其他产品。                              |
+| [adservice](/src/adservice)                         | Java          | 根据给定的上下文词提供文字广告。                              |
+| [loadgenerator](/src/loadgenerator)                 | Python/Locust | 持续向前端发送模拟真实用户购物流程的请求。                         |
 
-| Service                                              | Language      | Description                                                                                                                       |
-| ---------------------------------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| [frontend](/src/frontend)                           | Go            | Exposes an HTTP server to serve the website. Does not require signup/login and generates session IDs for all users automatically. |
-| [cartservice](/src/cartservice)                     | C#            | Stores the items in the user's shopping cart in Redis and retrieves it.                                                           |
-| [productcatalogservice](/src/productcatalogservice) | Go            | Provides the list of products from a JSON file and ability to search products and get individual products.                        |
-| [currencyservice](/src/currencyservice)             | Node.js       | Converts one money amount to another currency. Uses real values fetched from European Central Bank. It's the highest QPS service. |
-| [paymentservice](/src/paymentservice)               | Node.js       | Charges the given credit card info (mock) with the given amount and returns a transaction ID.                                     |
-| [shippingservice](/src/shippingservice)             | Go            | Gives shipping cost estimates based on the shopping cart. Ships items to the given address (mock)                                 |
-| [emailservice](/src/emailservice)                   | Python        | Sends users an order confirmation email (mock).                                                                                   |
-| [checkoutservice](/src/checkoutservice)             | Go            | Retrieves user cart, prepares order and orchestrates the payment, shipping and the email notification.                            |
-| [recommendationservice](/src/recommendationservice) | Python        | Recommends other products based on what's given in the cart.                                                                      |
-| [adservice](/src/adservice)                         | Java          | Provides text ads based on given context words.                                                                                   |
-| [loadgenerator](/src/loadgenerator)                 | Python/Locust | Continuously sends requests imitating realistic user shopping flows to the frontend.                                              |
+## 截图
 
-## Screenshots
-
-| Home Page                                                                                                         | Checkout Screen                                                                                                    |
-| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| 首页                                                                                                                    | 结算页                                                                                                                   |
+|-----------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------|
 | [![Screenshot of store homepage](/docs/img/online-boutique-frontend-1.png)](/docs/img/online-boutique-frontend-1.png) | [![Screenshot of checkout screen](/docs/img/online-boutique-frontend-2.png)](/docs/img/online-boutique-frontend-2.png) |
 
-## Quickstart (GKE)
+## 快速开始 (GKE)
 
-1. Ensure you have the following requirements:
+1. 具备以下要求:
    - [Google Cloud project](https://cloud.google.com/resource-manager/docs/creating-managing-projects#creating_a_project).
-   - Shell environment with `gcloud`, `git`, and `kubectl`.
+   - Shell 环境有 `gcloud`, `git`, 和 `kubectl`.
 
-2. Clone the latest major version.
+2. 克隆最新的主要版本.
 
    ```sh
    git clone --depth 1 --branch v0 https://github.com/GoogleCloudPlatform/microservices-demo.git
    cd microservices-demo/
    ```
 
-   The `--depth 1` argument skips downloading git history.
-
-3. Set the Google Cloud project and region and ensure the Google Kubernetes Engine API is enabled.
+3. 启用 Google Kubernetes 引擎 API
 
    ```sh
    export PROJECT_ID=<PROJECT_ID>
@@ -66,30 +56,24 @@ Find **Protocol Buffers Descriptions** at the [`./protos` directory](/protos).
      --project=${PROJECT_ID}
    ```
 
-   Substitute `<PROJECT_ID>` with the ID of your Google Cloud project.
-
-4. Create a GKE cluster and get the credentials for it.
+4. 创建 GKE 集群并获取其证书
 
    ```sh
    gcloud container clusters create-auto online-boutique \
      --project=${PROJECT_ID} --region=${REGION}
    ```
 
-   Creating the cluster may take a few minutes.
-
-5. Deploy Online Boutique to the cluster.
+5. 部署到群集.
 
    ```sh
    kubectl apply -f ./release/kubernetes-manifests.yaml
    ```
 
-6. Wait for the pods to be ready.
+6. 等待容器运行时准备就绪.
 
    ```sh
    kubectl get pods
    ```
-
-   After a few minutes, you should see the Pods in a `Running` state:
 
    ```
    NAME                                     READY   STATUS    RESTARTS   AGE
@@ -107,60 +91,10 @@ Find **Protocol Buffers Descriptions** at the [`./protos` directory](/protos).
    shippingservice-6ccc89f8fd-v686r         1/1     Running   0          2m58s
    ```
 
-7. Access the web frontend in a browser using the frontend's external IP.
+7. 使用前端的外部 IP 在浏览器中访问 Web 前端。
 
    ```sh
    kubectl get service frontend-external | awk '{print $4}'
    ```
 
-   Visit `http://EXTERNAL_IP` in a web browser to access your instance of Online Boutique.
-
-8. Congrats! You've deployed the default Online Boutique. To deploy a different variation of Online Boutique (e.g., with Google Cloud Operations tracing, Istio, etc.), see [Deploy Online Boutique variations with Kustomize](#deploy-online-boutique-variations-with-kustomize).
-
-9. Once you are done with it, delete the GKE cluster.
-
-   ```sh
-   gcloud container clusters delete online-boutique \
-     --project=${PROJECT_ID} --region=${REGION}
-   ```
-
-   Deleting the cluster may take a few minutes.
-
-## Additional deployment options
-
-- **Terraform**: [See these instructions](/terraform) to learn how to deploy Online Boutique using [Terraform](https://www.terraform.io/intro).
-- **Istio / Cloud Service Mesh**: [See these instructions](/kustomize/components/service-mesh-istio/README.md) to deploy Online Boutique alongside an Istio-backed service mesh.
-- **Non-GKE clusters (Minikube, Kind, etc)**: See the [Development guide](/docs/development-guide.md) to learn how you can deploy Online Boutique on non-GKE clusters.
-- **AI assistant using Gemini**: [See these instructions](/kustomize/components/shopping-assistant/README.md) to deploy a Gemini-powered AI assistant that suggests products to purchase based on an image.
-- **And more**: The [`/kustomize` directory](/kustomize) contains instructions for customizing the deployment of Online Boutique with other variations.
-
-## Documentation
-
-- [Development](/docs/development-guide.md) to learn how to run and develop this app locally.
-
-## Demos featuring Online Boutique
-
-- [Platform Engineering in action: Deploy the Online Boutique sample apps with Score and Humanitec](https://medium.com/p/d99101001e69)
-- [The new Kubernetes Gateway API with Istio and Anthos Service Mesh (ASM)](https://medium.com/p/9d64c7009cd)
-- [Use Azure Redis Cache with the Online Boutique sample on AKS](https://medium.com/p/981bd98b53f8)
-- [Sail Sharp, 8 tips to optimize and secure your .NET containers for Kubernetes](https://medium.com/p/c68ba253844a)
-- [Deploy multi-region application with Anthos and Google cloud Spanner](https://medium.com/google-cloud/a2ea3493ed0)
-- [Use Google Cloud Memorystore (Redis) with the Online Boutique sample on GKE](https://medium.com/p/82f7879a900d)
-- [Use Helm to simplify the deployment of Online Boutique, with a Service Mesh, GitOps, and more!](https://medium.com/p/246119e46d53)
-- [How to reduce microservices complexity with Apigee and Anthos Service Mesh](https://cloud.google.com/blog/products/application-modernization/api-management-and-service-mesh-go-together)
-- [gRPC health probes with Kubernetes 1.24+](https://medium.com/p/b5bd26253a4c)
-- [Use Google Cloud Spanner with the Online Boutique sample](https://medium.com/p/f7248e077339)
-- [Seamlessly encrypt traffic from any apps in your Mesh to Memorystore (redis)](https://medium.com/google-cloud/64b71969318d)
-- [Strengthen your app's security with Cloud Service Mesh and Anthos Config Management](https://cloud.google.com/service-mesh/docs/strengthen-app-security)
-- [From edge to mesh: Exposing service mesh applications through GKE Ingress](https://cloud.google.com/architecture/exposing-service-mesh-apps-through-gke-ingress)
-- [Take the first step toward SRE with Cloud Operations Sandbox](https://cloud.google.com/blog/products/operations/on-the-road-to-sre-with-cloud-operations-sandbox)
-- [Deploying the Online Boutique sample application on Cloud Service Mesh](https://cloud.google.com/service-mesh/docs/onlineboutique-install-kpt)
-- [Anthos Service Mesh Workshop: Lab Guide](https://codelabs.developers.google.com/codelabs/anthos-service-mesh-workshop)
-- [KubeCon EU 2019 - Reinventing Networking: A Deep Dive into Istio's Multicluster Gateways - Steve Dake, Independent](https://youtu.be/-t2BfT59zJA?t=982)
-- Google Cloud Next'18 SF
-  - [Day 1 Keynote](https://youtu.be/vJ9OaAqfxo4?t=2416) showing GKE On-Prem
-  - [Day 3 Keynote](https://youtu.be/JQPOPV_VH5w?t=815) showing Stackdriver
-    APM (Tracing, Code Search, Profiler, Google Cloud Build)
-  - [Introduction to Service Management with Istio](https://www.youtube.com/watch?v=wCJrdKdD6UM&feature=youtu.be&t=586)
-- [Google Cloud Next'18 London – Keynote](https://youtu.be/nIq2pkNcfEI?t=3071)
-  showing Stackdriver Incident Response Management
+   通过网络浏览器访问http://EXTERNAL_IP您的在线精品店实例。
