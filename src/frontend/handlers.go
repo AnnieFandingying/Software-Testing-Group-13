@@ -319,7 +319,9 @@ func (fe *frontendServer) viewCartHandler(w http.ResponseWriter, r *http.Request
 
 func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Request) {
 	log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
+	start := time.Now()
 	log.Debug("placing order")
+	log.WithFields(logrus.Fields{"event": "http_request_received", "service": "frontend", "action": "place_order"}).Info("frontend received checkout request")
 
 	var (
 		email         = r.FormValue("email")
@@ -347,6 +349,7 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 		CcCVV:         ccCVV,
 	}
 	if err := payload.Validate(); err != nil {
+		fe.sendTelemetryEvent(r.Context(), telemetryEvent{Service: "frontend", Action: "place_order", Status: "error", ErrorType: classifyFrontendError(err), DurationMillis: time.Since(start).Milliseconds(), TraceID: traceIDFromContext(r.Context())})
 		renderHTTPError(log, r, w, validator.ValidationErrorResponse(err), http.StatusUnprocessableEntity)
 		return
 	}
@@ -369,6 +372,8 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 				Country:       payload.Country},
 		})
 	if err != nil {
+		fe.logFrontendEvent(log, "error", time.Since(start), err)
+		fe.sendTelemetryEvent(r.Context(), telemetryEvent{Service: "frontend", Action: "place_order", Status: "error", ErrorType: classifyFrontendError(err), DurationMillis: time.Since(start).Milliseconds(), TraceID: traceIDFromContext(r.Context())})
 		renderHTTPError(log, r, w, errors.Wrap(err, "failed to complete the order"), http.StatusInternalServerError)
 		return
 	}
@@ -382,12 +387,16 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 		multPrice := money.MultiplySlow(*v.GetCost(), uint32(v.GetItem().GetQuantity()))
 		totalPaid = money.Must(money.Sum(totalPaid, multPrice))
 	}
+	totalPaid = applyDisplayDiscount(currentCurrency(r), totalPaid)
 
 	currencies, err := fe.getCurrencies(r.Context())
 	if err != nil {
 		renderHTTPError(log, r, w, errors.Wrap(err, "could not retrieve currencies"), http.StatusInternalServerError)
 		return
 	}
+
+	fe.logFrontendEvent(log, "ok", time.Since(start), nil)
+	fe.sendTelemetryEvent(r.Context(), telemetryEvent{Service: "frontend", Action: "place_order", Status: "ok", ErrorType: "none", DurationMillis: time.Since(start).Milliseconds(), TraceID: traceIDFromContext(r.Context())})
 
 	if err := templates.ExecuteTemplate(w, "order", injectCommonTemplateData(r, map[string]interface{}{
 		"show_currency":   false,
@@ -401,6 +410,7 @@ func (fe *frontendServer) placeOrderHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (fe *frontendServer) assistantHandler(w http.ResponseWriter, r *http.Request) {
+	log := r.Context().Value(ctxKeyLog{}).(logrus.FieldLogger)
 	currencies, err := fe.getCurrencies(r.Context())
 	if err != nil {
 		renderHTTPError(log, r, w, errors.Wrap(err, "could not retrieve currencies"), http.StatusInternalServerError)

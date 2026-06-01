@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: discountservice
+  labels:
+    app: discountservice
+spec:
+  selector:
+    matchLabels:
+      app: discountservice
+  template:
+    metadata:
+      labels:
+        app: discountservice
+    spec:
+      serviceAccountName: discountservice
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+        - name: server
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+          image: discountservice
+          ports:
+          - containerPort: 50051
+          readinessProbe:
+            grpc:
+              port: 50051
+          livenessProbe:
+            grpc:
+              port: 50051
+          env:
+          - name: PORT
+            value: "50051"
+          - name: TELEMETRY_SERVICE_URL
+            value: "http://telemetryservice:8080/events"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: discountservice
+  labels:
+    app: discountservice
+spec:
+  type: ClusterIP
+  selector:
+    app: discountservice
+  ports:
+  - name: grpc
+    port: 50051
+    targetPort: 50051
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: discountservice

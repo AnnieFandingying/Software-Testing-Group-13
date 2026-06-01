@@ -238,6 +238,23 @@ message PlaceOrderResponse {
     OrderResult order = 1;
 }
 
+service DiscountService {
+    rpc GetDiscount(GetDiscountRequest) returns (GetDiscountResponse) {}
+}
+
+message GetDiscountRequest {
+    Money original_amount = 1;
+    string currency_code = 2;
+}
+
+message GetDiscountResponse {
+    Money original_amount = 1;
+    Money discount_amount = 2;
+    Money final_amount = 3;
+    string applied_rule = 4;
+    string description = 5;
+}
+
 // ------------Ad service------------------
 
 service AdService {

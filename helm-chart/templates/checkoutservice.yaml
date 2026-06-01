@@ -86,6 +86,10 @@ spec:
           value: "{{ .Values.shippingService.name }}:50051"
         - name: PAYMENT_SERVICE_ADDR
           value: "{{ .Values.paymentService.name }}:50051"
+        - name: DISCOUNT_SERVICE_ADDR
+          value: "{{ .Values.discountService.name }}:50051"
+        - name: TELEMETRY_SERVICE_URL
+          value: "http://{{ .Values.telemetryService.name }}:8080/events"
         - name: EMAIL_SERVICE_ADDR
           value: "{{ .Values.emailService.name }}:5000"
         - name: CURRENCY_SERVICE_ADDR

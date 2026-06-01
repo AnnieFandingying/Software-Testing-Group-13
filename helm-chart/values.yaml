@@ -92,6 +92,28 @@ checkoutService:
       cpu: 200m
       memory: 128Mi
 
+discountService:
+  create: true
+  name: discountservice
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+telemetryService:
+  create: true
+  name: telemetryservice
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
 currencyService:
   create: true
   name: currencyservice

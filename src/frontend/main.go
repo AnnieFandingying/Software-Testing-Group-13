@@ -85,6 +85,9 @@ type frontendServer struct {
 	collectorConn *grpc.ClientConn
 
 	shoppingAssistantSvcAddr string
+
+	telemetryServiceURL string
+	telemetryClient     *http.Client
 }
 
 func main() {
@@ -136,6 +139,10 @@ func main() {
 	mustMapEnv(&svc.shippingSvcAddr, "SHIPPING_SERVICE_ADDR")
 	mustMapEnv(&svc.adSvcAddr, "AD_SERVICE_ADDR")
 	mustMapEnv(&svc.shoppingAssistantSvcAddr, "SHOPPING_ASSISTANT_SERVICE_ADDR")
+	svc.telemetryServiceURL = os.Getenv("TELEMETRY_SERVICE_URL")
+	if svc.telemetryServiceURL != "" {
+		svc.telemetryClient = &http.Client{Timeout: 100 * time.Millisecond}
+	}
 
 	mustConnGRPC(ctx, &svc.currencySvcConn, svc.currencySvcAddr)
 	mustConnGRPC(ctx, &svc.productCatalogSvcConn, svc.productCatalogSvcAddr)

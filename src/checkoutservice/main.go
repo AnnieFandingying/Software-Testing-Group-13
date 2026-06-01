@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"time"
 
@@ -81,6 +82,12 @@ type checkoutService struct {
 
 	paymentSvcAddr string
 	paymentSvcConn *grpc.ClientConn
+
+	discountSvcAddr string
+	discountSvcConn *grpc.ClientConn
+
+	telemetryServiceURL string
+	telemetryReporter   *httpTelemetryReporter
 }
 
 func main() {
@@ -112,6 +119,8 @@ func main() {
 	mustMapEnv(&svc.currencySvcAddr, "CURRENCY_SERVICE_ADDR")
 	mustMapEnv(&svc.emailSvcAddr, "EMAIL_SERVICE_ADDR")
 	mustMapEnv(&svc.paymentSvcAddr, "PAYMENT_SERVICE_ADDR")
+	mustMapEnv(&svc.discountSvcAddr, "DISCOUNT_SERVICE_ADDR")
+	mustMapEnv(&svc.telemetryServiceURL, "TELEMETRY_SERVICE_URL")
 
 	mustConnGRPC(ctx, &svc.shippingSvcConn, svc.shippingSvcAddr)
 	mustConnGRPC(ctx, &svc.productCatalogSvcConn, svc.productCatalogSvcAddr)
@@ -119,6 +128,13 @@ func main() {
 	mustConnGRPC(ctx, &svc.currencySvcConn, svc.currencySvcAddr)
 	mustConnGRPC(ctx, &svc.emailSvcConn, svc.emailSvcAddr)
 	mustConnGRPC(ctx, &svc.paymentSvcConn, svc.paymentSvcAddr)
+	mustConnGRPC(ctx, &svc.discountSvcConn, svc.discountSvcAddr)
+	
+	svc.telemetryReporter = &httpTelemetryReporter{
+		client: &http.Client{Timeout: defaultTelemetryTimeout},
+		url:    svc.telemetryServiceURL,
+		log:    log,
+	}
 
 	log.Infof("service config: %+v", svc)
 
@@ -129,7 +145,6 @@ func main() {
 
 	var srv *grpc.Server
 
-	// Propagate trace context always
 	otel.SetTextMapPropagator(
 		propagation.NewCompositeTextMapPropagator(
 			propagation.TraceContext{}, propagation.Baggage{}))
@@ -146,7 +161,6 @@ func main() {
 }
 
 func initStats() {
-	//TODO(arbrown) Implement OpenTelemetry stats
 }
 
 func initTracing() {
@@ -176,14 +190,10 @@ func initTracing() {
 }
 
 func initProfiling(service, version string) {
-	// TODO(ahmetb) this method is duplicated in other microservices using Go
-	// since they are not sharing packages.
 	for i := 1; i <= 3; i++ {
 		if err := profiler.Start(profiler.Config{
 			Service:        service,
 			ServiceVersion: version,
-			// ProjectID must be set if not running on GCP.
-			// ProjectID: "my-project",
 		}); err != nil {
 			log.Warnf("failed to start profiler: %+v", err)
 		} else {
@@ -228,6 +238,7 @@ func (cs *checkoutService) Watch(req *healthpb.HealthCheckRequest, ws healthpb.H
 
 func (cs *checkoutService) PlaceOrder(ctx context.Context, req *pb.PlaceOrderRequest) (*pb.PlaceOrderResponse, error) {
 	log.Infof("[PlaceOrder] user_id=%q user_currency=%q", req.UserId, req.UserCurrency)
+	start := time.Now()
 
 	orderID, err := uuid.NewUUID()
 	if err != nil {
@@ -239,17 +250,33 @@ func (cs *checkoutService) PlaceOrder(ctx context.Context, req *pb.PlaceOrderReq
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	total := pb.Money{CurrencyCode: req.UserCurrency,
-		Units: 0,
-		Nanos: 0}
+	total := pb.Money{CurrencyCode: req.UserCurrency, Units: 0, Nanos: 0}
 	total = money.Must(money.Sum(total, *prep.shippingCostLocalized))
 	for _, it := range prep.orderItems {
 		multPrice := money.MultiplySlow(*it.Cost, uint32(it.GetItem().GetQuantity()))
 		total = money.Must(money.Sum(total, multPrice))
 	}
 
-	txID, err := cs.chargeCard(ctx, &total, req.CreditCard)
+	discount, err := cs.getDiscount(ctx, req.UserCurrency, &total)
 	if err != nil {
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	setCheckoutPricingHeaders(ctx, discount.OriginalAmount, discount.FinalAmount, discount.DiscountAmount, discount.AppliedRule)
+
+	txID, err := cs.chargeCard(ctx, discount.FinalAmount, req.CreditCard)
+	if err != nil {
+		cs.telemetryReporter.ReportAsync(ctx, telemetryEvent{
+			Service:        "checkoutservice",
+			Action:         "place_order",
+			Status:         "error",
+			ErrorType:      classifyCheckoutError(err),
+			DurationMillis: time.Since(start).Milliseconds(),
+			TraceID:        traceIDFromContext(ctx),
+			OriginalTotal:  moneyToFloat(discount.OriginalAmount),
+			DiscountAmount: moneyToFloat(discount.DiscountAmount),
+			FinalTotal:     moneyToFloat(discount.FinalAmount),
+			DiscountRule:   discount.AppliedRule,
+		})
 		return nil, status.Errorf(codes.Internal, "failed to charge card: %+v", err)
 	}
 	log.Infof("payment went through (transaction_id: %s)", txID)
@@ -274,6 +301,29 @@ func (cs *checkoutService) PlaceOrder(ctx context.Context, req *pb.PlaceOrderReq
 	} else {
 		log.Infof("order confirmation email sent to %q", req.Email)
 	}
+	log.WithFields(logrus.Fields{
+		"event":           "checkout_completed",
+		"service":         "checkoutservice",
+		"action":          "place_order",
+		"status":          "ok",
+		"duration_ms":     time.Since(start).Milliseconds(),
+		"original_total":  moneyToFloat(discount.OriginalAmount),
+		"discount_amount": moneyToFloat(discount.DiscountAmount),
+		"final_total":     moneyToFloat(discount.FinalAmount),
+		"discount_rule":   discount.AppliedRule,
+	}).Info("checkout event")
+	cs.telemetryReporter.ReportAsync(ctx, telemetryEvent{
+		Service:        "checkoutservice",
+		Action:         "place_order",
+		Status:         "ok",
+		ErrorType:      "none",
+		DurationMillis: time.Since(start).Milliseconds(),
+		TraceID:        traceIDFromContext(ctx),
+		OriginalTotal:  moneyToFloat(discount.OriginalAmount),
+		DiscountAmount: moneyToFloat(discount.DiscountAmount),
+		FinalTotal:     moneyToFloat(discount.FinalAmount),
+		DiscountRule:   discount.AppliedRule,
+	})
 	resp := &pb.PlaceOrderResponse{Order: orderResult}
 	return resp, nil
 }
@@ -348,9 +398,7 @@ func (cs *checkoutService) prepOrderItems(ctx context.Context, items []*pb.CartI
 		if err != nil {
 			return nil, fmt.Errorf("failed to convert price of %q to %s", item.GetProductId(), userCurrency)
 		}
-		out[i] = &pb.OrderItem{
-			Item: item,
-			Cost: price}
+		out[i] = &pb.OrderItem{Item: item, Cost: price}
 	}
 	return out, nil
 }
@@ -366,9 +414,7 @@ func (cs *checkoutService) convertCurrency(ctx context.Context, from *pb.Money, 
 }
 
 func (cs *checkoutService) chargeCard(ctx context.Context, amount *pb.Money, paymentInfo *pb.CreditCardInfo) (string, error) {
-	paymentResp, err := pb.NewPaymentServiceClient(cs.paymentSvcConn).Charge(ctx, &pb.ChargeRequest{
-		Amount:     amount,
-		CreditCard: paymentInfo})
+	paymentResp, err := pb.NewPaymentServiceClient(cs.paymentSvcConn).Charge(ctx, &pb.ChargeRequest{Amount: amount, CreditCard: paymentInfo})
 	if err != nil {
 		return "", fmt.Errorf("could not charge the card: %+v", err)
 	}
@@ -376,16 +422,12 @@ func (cs *checkoutService) chargeCard(ctx context.Context, amount *pb.Money, pay
 }
 
 func (cs *checkoutService) sendOrderConfirmation(ctx context.Context, email string, order *pb.OrderResult) error {
-	_, err := pb.NewEmailServiceClient(cs.emailSvcConn).SendOrderConfirmation(ctx, &pb.SendOrderConfirmationRequest{
-		Email: email,
-		Order: order})
+	_, err := pb.NewEmailServiceClient(cs.emailSvcConn).SendOrderConfirmation(ctx, &pb.SendOrderConfirmationRequest{Email: email, Order: order})
 	return err
 }
 
 func (cs *checkoutService) shipOrder(ctx context.Context, address *pb.Address, items []*pb.CartItem) (string, error) {
-	resp, err := pb.NewShippingServiceClient(cs.shippingSvcConn).ShipOrder(ctx, &pb.ShipOrderRequest{
-		Address: address,
-		Items:   items})
+	resp, err := pb.NewShippingServiceClient(cs.shippingSvcConn).ShipOrder(ctx, &pb.ShipOrderRequest{Address: address, Items: items})
 	if err != nil {
 		return "", fmt.Errorf("shipment failed: %+v", err)
 	}

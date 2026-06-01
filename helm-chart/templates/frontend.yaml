@@ -108,6 +108,8 @@ spec:
             value: "{{ .Values.adService.name }}:9555"
           - name: SHOPPING_ASSISTANT_SERVICE_ADDR
             value: "{{ .Values.shoppingAssistantService.name }}:80"
+          - name: TELEMETRY_SERVICE_URL
+            value: "http://{{ .Values.telemetryService.name }}:8080/events"
           - name: ENV_PLATFORM
             value: {{ .Values.frontend.platform | quote }}
           {{- if .Values.opentelemetryCollector.create }}
