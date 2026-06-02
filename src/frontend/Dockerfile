@@ -12,19 +12,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:1.23.1-alpine@sha256:ac67716dd016429be8d4c2c53a248d7bcdf06d34127d3dc451bda6aa5a87bc06 AS builder
+FROM golang:1.25-alpine AS builder
+
+ENV GOPROXY=https://goproxy.cn,direct \
+    GO111MODULE=on \
+    CGO_ENABLED=0 \
+    GOOS=linux \
+    GOFLAGS=-mod=mod
+
 WORKDIR /src
 
 # restore dependencies
-COPY go.mod go.sum ./
-RUN go mod download
+COPY go.mod ./
+
+# 手动获取所有缺失的依赖
+RUN go get cloud.google.com/go/profiler@v0.4.1 && \
+    go get github.com/pkg/errors && \
+    go get github.com/sirupsen/logrus && \
+    go get google.golang.org/grpc && \
+    go get google.golang.org/protobuf
+
+# 再次整理并下载
+RUN go mod tidy -v && go mod download -x
+
 COPY . .
 
 # Skaffold passes in debug-oriented compiler flags
 ARG SKAFFOLD_GO_GCFLAGS
-RUN CGO_ENABLED=0 GOOS=linux go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -o /go/bin/frontend .
+RUN go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -o /go/bin/frontend .
 
-FROM scratch
+FROM alpine:3.18
 WORKDIR /src
 COPY --from=builder /go/bin/frontend /src/server
 COPY ./templates ./templates

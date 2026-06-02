@@ -1,4 +1,4 @@
-package genproto
+package hipstershop
 
 import (
 	context "context"
