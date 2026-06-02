@@ -12,12 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:1.23.1-alpine@sha256:ac67716dd016429be8d4c2c53a248d7bcdf06d34127d3dc451bda6aa5a87bc06 AS builder
+FROM golang:1.25-alpine AS builder
+
+ENV GOPROXY=https://goproxy.cn,direct \
+    GO111MODULE=on \
+    CGO_ENABLED=0 \
+    GOOS=linux \
+    GOFLAGS=-mod=mod
+
 WORKDIR /src
 
-RUN apk add --no-cache protobuf
-RUN GOBIN=/usr/local/bin go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.35.1
-RUN GOBIN=/usr/local/bin go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
+# 换国内 Alpine 源，安装 protoc
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
+    apk add --no-cache protoc
+
+# 安装 Go proto 插件
+RUN GOBIN=/usr/local/bin go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.35.1 && \
+    GOBIN=/usr/local/bin go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
 
 # restore dependencies
 COPY go.mod go.sum ./
@@ -25,22 +36,9 @@ RUN go mod download
 
 COPY . .
 
-RUN rm -f genproto/discount.pb.go \
+# 删除手工维护的 discount.pb.go，统一用 proto 重新生成
+RUN rm -f genproto/discount.pb.go genproto/discount_grpc.pb.go \
  && cat > /tmp/demo.proto <<'PROTOEOF'
-// Copyright 2020 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 syntax = "proto3";
 
 package hipstershop;
@@ -275,9 +273,9 @@ RUN protoc --proto_path=/tmp \
 
 # Skaffold passes in debug-oriented compiler flags
 ARG SKAFFOLD_GO_GCFLAGS
-RUN CGO_ENABLED=0 GOOS=linux go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -o /checkoutservice .
+RUN go build -gcflags="${SKAFFOLD_GO_GCFLAGS}" -o /checkoutservice .
 
-FROM scratch
+FROM alpine:3.18
 
 WORKDIR /src
 COPY --from=builder /checkoutservice /src/checkoutservice

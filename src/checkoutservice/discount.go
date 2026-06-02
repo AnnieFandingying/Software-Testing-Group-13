@@ -12,6 +12,7 @@ import (
 	money "github.com/GoogleCloudPlatform/microservices-demo/src/checkoutservice/money"
 	"github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/trace"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -86,7 +87,7 @@ func encodeMoneyHeader(amount *pb.Money) string {
 }
 
 func setCheckoutPricingHeaders(ctx context.Context, original, final, discount *pb.Money, rule string) {
-	_ = metadata.SetHeader(ctx, metadata.Pairs(
+	_ = grpc.SetHeader(ctx, metadata.Pairs(
 		headerOriginalTotal, encodeMoneyHeader(original),
 		headerFinalTotal, encodeMoneyHeader(final),
 		headerDiscountAmount, encodeMoneyHeader(discount),
