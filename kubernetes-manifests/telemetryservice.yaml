@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telemetryservice
+  labels:
+    app: telemetryservice
+spec:
+  selector:
+    matchLabels:
+      app: telemetryservice
+  template:
+    metadata:
+      labels:
+        app: telemetryservice
+    spec:
+      serviceAccountName: telemetryservice
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+      containers:
+        - name: server
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+          image: telemetryservice
+          ports:
+          - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+          env:
+          - name: PORT
+            value: "8080"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: telemetryservice
+  labels:
+    app: telemetryservice
+spec:
+  type: ClusterIP
+  selector:
+    app: telemetryservice
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: telemetryservice
