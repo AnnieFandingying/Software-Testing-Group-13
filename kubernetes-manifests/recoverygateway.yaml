@@ -1,0 +1,119 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: recovery-gateway
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: recovery-gateway
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "delete"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "create", "patch", "update"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: recovery-gateway
+subjects:
+  - kind: ServiceAccount
+    name: recovery-gateway
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: recovery-gateway
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: recovery-gateway-secret
+type: Opaque
+stringData:
+  token: "replace-with-strong-agent-token"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: recovery-gateway
+  labels:
+    app: recovery-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: recovery-gateway
+  template:
+    metadata:
+      labels:
+        app: recovery-gateway
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+        prometheus.io/port: "8080"
+    spec:
+      imagePullSecrets:
+        - name: aliyun-registry-secret
+      serviceAccountName: recovery-gateway
+      containers:
+        - name: recovery-gateway
+          image: crpi-58q90d93wk1qq3wp.cn-hangzhou.personal.cr.aliyuncs.com/nick3455575119/recoverygateway:618-v1
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: RECOVERY_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: RECOVERY_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: recovery-gateway-secret
+                  key: token
+            - name: RECOVERY_ALLOWED_TARGETS
+              value: "frontend,checkoutservice,cartservice,productcatalogservice,paymentservice,shippingservice,currencyservice,emailservice,recommendationservice,adservice,redis-cart,discountservice,telemetryservice,recovery-gateway"
+            - name: RECOVERY_DRY_RUN
+              value: "false"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 50m
+              memory: 96Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: recovery-gateway
+  labels:
+    app: recovery-gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: recovery-gateway
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+
+
