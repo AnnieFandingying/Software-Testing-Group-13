@@ -1,0 +1,105 @@
+# ============================================================
+# VeADK AIOps Agent 配置文件
+# ============================================================
+# 说明：此 YAML 文件描述 Agent 的完整配置。
+# 实际运行时通过环境变量覆盖这些值（VEADK_ 前缀）。
+# ============================================================
+
+agent:
+  name: "VeADK-AIOps-Agent"
+  version: "1.0.0"
+  description: "Online-Boutique 微服务系统智能运维 Agent"
+
+# --- 大模型配置 ---
+llm:
+  provider: "openai_compatible"  # 使用 OpenAI 兼容接口
+  model: "deepseek-chat"
+  base_url: "https://api.deepseek.com"
+  max_tokens: 4096
+  temperature: 0.1
+  # 备选模型：
+  # - deepseek-chat (DeepSeek)
+  # - qwen-plus (通义千问)
+  # - doubao-lite-32k (火山引擎豆包)
+  # - gpt-4o (OpenAI)
+
+# --- 数据源配置 ---
+datasources:
+  prometheus:
+    url: "http://localhost:9090"
+    timeout_seconds: 10
+  kubernetes:
+    namespace: "sock-shop"
+    # kube_config_path: null  # null = 默认 kubeconfig
+
+# --- 自愈网关配置 ---
+recovery_gateway:
+  url: "http://localhost:8080"
+  # auth_token 通过环境变量 VEADK_RECOVERY_AUTH_TOKEN 注入
+  endpoints:
+    restart: "/api/v1/restart"
+    degrade: "/api/v1/degrade"
+    degrade_state: "/api/v1/degrade-state"
+    health: "/healthz"
+
+# --- Webhook 服务器 ---
+webhook:
+  host: "0.0.0.0"
+  port: 5000
+  endpoints:
+    alert: "/alert"       # Alertmanager Webhook 接收
+    diagnose: "/diagnose"  # 手动诊断
+    health: "/healthz"     # 健康检查
+    metrics: "/metrics"    # Agent 自身指标
+
+# --- Agent 行为参数 ---
+behavior:
+  max_tool_calls_per_diagnosis: 5  # 单次诊断最大工具调用轮数
+  cpu_alert_threshold: 0.5         # CPU 告警阈值（核）
+  memory_alert_threshold_mb: 512   # 内存告警阈值（MB）
+  patrol_interval_seconds: 10      # 巡检间隔
+  diagnosis_cooldown_seconds: 60   # 告警冷却期
+  dedup_cache_size: 100            # 去重缓存大小
+
+# --- 自愈白名单 ---
+allowed_services:
+  - frontend
+  - checkoutservice
+  - cartservice
+  - productcatalogservice
+  - paymentservice
+  - shippingservice
+  - currencyservice
+  - emailservice
+  - recommendationservice
+  - adservice
+  - redis-cart
+  - discountservice
+  - telemetryservice
+  - recovery-gateway
+
+# --- 故障场景自动响应策略 ---
+auto_recovery_policies:
+  # CPU 持续高负载
+  high_cpu:
+    condition: "cpu > 2.0 核持续 5 分钟以上"
+    action: "先查日志确认根因，如为死循环/连接泄漏则重启，否则仅告警"
+  # 内存泄漏
+  memory_leak:
+    condition: "内存持续增长且不释放"
+    action: "重启服务 + 设置 degraded 模式"
+
+  # 5xx 错误率突增
+  error_rate_spike:
+    condition: "5xx 错误率 > 10% 持续 3 分钟"
+    action: "查日志定位错误原因 → 如果是依赖故障则降级 → 如果是自身 bug 则重启"
+
+  # Pod 频繁重启
+  pod_crashloop:
+    condition: "Pod 在 10 分钟内重启 > 3 次"
+    action: "查日志 + 标记服务为 degraded → 阻止流量 → 通知人工介入"
+
+  # 数据库连接耗尽
+  db_pool_exhausted:
+    condition: "日志中出现 'DB Pool exhausted' 或 'Connection refused'"
+    action: "重启受影响服务 + 建议扩容数据库连接池"
