@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - stress-frontend-cpu.yaml
+  - network-delay-checkout-to-discount.yaml
+  - network-loss-telemetry-weak-dependency.yaml
+  - pod-failure-productcatalogservice.yaml
+  - pod-kill-checkoutservice.yaml

@@ -46,6 +46,8 @@ metadata:
     app: recovery-gateway
 spec:
   replicas: 1
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       app: recovery-gateway
@@ -58,12 +60,11 @@ spec:
         prometheus.io/path: "/metrics"
         prometheus.io/port: "8080"
     spec:
-      imagePullSecrets:
-        - name: aliyun-registry-secret
       serviceAccountName: recovery-gateway
       containers:
         - name: recovery-gateway
           image: crpi-58q90d93wk1qq3wp.cn-hangzhou.personal.cr.aliyuncs.com/nick3455575119/recoverygateway:618-v1
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
               name: http
@@ -95,11 +96,11 @@ spec:
             periodSeconds: 20
           resources:
             requests:
-              cpu: 50m
-              memory: 96Mi
+              cpu: 1m
+              memory: 1Mi
             limits:
-              cpu: 300m
-              memory: 256Mi
+              cpu: 200m
+              memory: 192Mi
 ---
 apiVersion: v1
 kind: Service
@@ -115,5 +116,8 @@ spec:
     - name: http
       port: 8080
       targetPort: http
+
+
+
 
 
