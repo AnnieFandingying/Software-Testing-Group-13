@@ -1,10 +1,10 @@
 apiVersion: chaos-mesh.org/v1alpha1
 kind: PodChaos
 metadata:
-  name: member-c-productcatalog-pod-failure
+  name: checkout-productcatalog-pod-failure
   namespace: default
   labels:
-    role: member-c
+    test-suite: checkout-chaos
     scenario: productcatalog-pod-failure
 spec:
   action: pod-failure

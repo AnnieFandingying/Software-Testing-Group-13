@@ -1,10 +1,10 @@
 apiVersion: chaos-mesh.org/v1alpha1
 kind: NetworkChaos
 metadata:
-  name: member-c-telemetry-loss-weak-dependency
+  name: checkout-telemetry-loss-weak-dependency
   namespace: default
   labels:
-    role: member-c
+    test-suite: checkout-chaos
     scenario: telemetry-weak-dependency
 spec:
   action: loss

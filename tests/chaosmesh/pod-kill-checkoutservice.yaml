@@ -1,10 +1,10 @@
 apiVersion: chaos-mesh.org/v1alpha1
 kind: PodChaos
 metadata:
-  name: member-c-checkout-pod-kill
+  name: checkout-pod-kill
   namespace: default
   labels:
-    role: member-c
+    test-suite: checkout-chaos
     scenario: checkout-pod-kill
 spec:
   action: pod-kill

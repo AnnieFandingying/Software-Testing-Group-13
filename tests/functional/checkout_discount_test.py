@@ -1,4 +1,4 @@
-"""Selenium end-to-end checks for Member C.
+"""Selenium end-to-end checks for checkout discounts.
 
 The tests exercise the Online Boutique frontend like a real user:
 set currency, add a product to cart, submit checkout, and verify the
@@ -11,8 +11,8 @@ Environment variables:
   SELENIUM_HEADLESS: true/false, default true
   SELENIUM_TIMEOUT_SECONDS: explicit wait timeout, default 20
   PRODUCT_ID: product id used by checkout flow, default 1YMWWN1N4O
-  PRODUCT_QUANTITY: quantity from the product page dropdown, default 1
-  CHECKOUT_ONLY_CURRENCY: optional CNY or USD to run one case only
+  PRODUCT_QUANTITY: quantity from the product page dropdown, default 2
+  CHECKOUT_ONLY_CURRENCY: optional currency code to run one case only
   TELEMETRY_METRICS_URL: optional telemetry /metrics URL for post-checkout assert
   SELENIUM_RESULT_FILE: optional JSONL output path
 """
@@ -39,8 +39,9 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-DEFAULT_PRODUCT_ID = "1YMWWN1N4O"  # Watch, high enough to hit CNY 700 tier.
+DEFAULT_PRODUCT_ID = "1YMWWN1N4O"
 CHECKOUT_FORM = "form.cart-checkout-form"
+DISCOUNT_CURRENCIES = {"EUR", "USD", "JPY", "GBP", "TRY", "CAD"}
 
 
 def bool_env(name: str, default: bool) -> bool:
@@ -73,7 +74,7 @@ def parse_money(text: str) -> Decimal:
 
 
 def expected_discount(currency: str, original_total: Decimal) -> tuple[Decimal, str]:
-    if currency != "CNY":
+    if currency not in DISCOUNT_CURRENCIES:
         return Decimal("0.00"), "NO_DISCOUNT"
 
     # discountservice uses Money.Units for tier matching, so nanos are floored.
@@ -89,13 +90,13 @@ def expected_discount(currency: str, original_total: Decimal) -> tuple[Decimal, 
 
 def checkout_cases() -> Iterable[tuple[str, str, str]]:
     product_id = os.getenv("PRODUCT_ID", DEFAULT_PRODUCT_ID)
-    quantity = os.getenv("PRODUCT_QUANTITY", "1")
+    quantity = os.getenv("PRODUCT_QUANTITY", "2")
     only_currency = os.getenv("CHECKOUT_ONLY_CURRENCY")
     if only_currency:
         yield only_currency.upper(), product_id, quantity
         return
-    yield "CNY", product_id, quantity
-    yield "USD", product_id, quantity
+    for currency in ("EUR", "USD", "JPY", "GBP", "TRY", "CAD"):
+        yield currency, product_id, quantity
 
 
 @pytest.fixture()
@@ -212,7 +213,7 @@ def write_result(payload: dict) -> None:
     result_file = Path(
         os.getenv(
             "SELENIUM_RESULT_FILE",
-            "results/member_c/selenium/checkout_discount_results.jsonl",
+            "results/testing/functional/checkout_discount_results.jsonl",
         )
     )
     result_file.parent.mkdir(parents=True, exist_ok=True)

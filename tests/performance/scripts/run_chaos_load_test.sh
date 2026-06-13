@@ -3,25 +3,25 @@ set -euo pipefail
 
 # Run JMeter load while a ChaosMesh experiment is active.
 #
-# Required tools on Member C machine:
+# Required tools on the test runner machine:
 #   jmeter, kubectl, python3
 #
 # Important environment variables:
 #   FRONTEND_HOST=127.0.0.1
 #   FRONTEND_PORT=8080
-#   CHAOS_FILE=tests/member_c/chaosmesh/network-delay-checkout-to-discount.yaml
-#   THREADS=50 RAMP_SECONDS=60 DURATION_SECONDS=600
+#   CHAOS_FILE=tests/chaosmesh/network-delay-checkout-to-discount.yaml
+#   THREADS=10 RAMP_SECONDS=120 DURATION_SECONDS=1800
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-TEST_PLAN="${TEST_PLAN:-${ROOT_DIR}/tests/member_c/jmeter/online_boutique_checkout_pressure.jmx}"
-RESULTS_DIR="${RESULTS_DIR:-${ROOT_DIR}/results/member_c/jmeter}"
+TEST_PLAN="${TEST_PLAN:-${ROOT_DIR}/tests/performance/online_boutique_checkout_pressure.jmx}"
+RESULTS_DIR="${RESULTS_DIR:-${ROOT_DIR}/results/testing/jmeter}"
 RUN_NAME="${RUN_NAME:-chaos-$(date +%Y%m%d-%H%M%S)}"
 JTL_FILE="${JTL_FILE:-${RESULTS_DIR}/${RUN_NAME}.jtl}"
-CHAOS_FILE="${CHAOS_FILE:-${ROOT_DIR}/tests/member_c/chaosmesh/network-delay-checkout-to-discount.yaml}"
+CHAOS_FILE="${CHAOS_FILE:-${ROOT_DIR}/tests/chaosmesh/network-delay-checkout-to-discount.yaml}"
 CHAOS_DELAY_SECONDS="${CHAOS_DELAY_SECONDS:-120}"
-THREADS="${THREADS:-50}"
-RAMP_SECONDS="${RAMP_SECONDS:-60}"
-DURATION_SECONDS="${DURATION_SECONDS:-600}"
+THREADS="${THREADS:-10}"
+RAMP_SECONDS="${RAMP_SECONDS:-120}"
+DURATION_SECONDS="${DURATION_SECONDS:-1800}"
 CONNECT_TIMEOUT_MS="${CONNECT_TIMEOUT_MS:-5000}"
 RESPONSE_TIMEOUT_MS="${RESPONSE_TIMEOUT_MS:-30000}"
 SUMMARISER_INTERVAL_SECONDS="${SUMMARISER_INTERVAL_SECONDS:-10}"
@@ -29,7 +29,7 @@ FRONTEND_SCHEME="${FRONTEND_SCHEME:-http}"
 FRONTEND_HOST="${FRONTEND_HOST:-127.0.0.1}"
 FRONTEND_PORT="${FRONTEND_PORT:-8080}"
 PRODUCT_ID="${PRODUCT_ID:-1YMWWN1N4O}"
-PRODUCT_QUANTITY="${PRODUCT_QUANTITY:-1}"
+PRODUCT_QUANTITY="${PRODUCT_QUANTITY:-2}"
 CURRENCY_CODE="${CURRENCY_CODE:-USD}"
 JMETER_BIN="${JMETER_BIN:-jmeter}"
 ANALYZE_LABEL="${ANALYZE_LABEL:-E2E Browse And Checkout}"
@@ -57,10 +57,10 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-echo "[member-c] JMeter plan: ${TEST_PLAN}"
-echo "[member-c] JTL output: ${JTL_FILE}"
-echo "[member-c] Chaos file: ${CHAOS_FILE}"
-echo "[member-c] Frontend: ${FRONTEND_SCHEME}://${FRONTEND_HOST}:${FRONTEND_PORT}"
+echo "[checkout-test] JMeter plan: ${TEST_PLAN}"
+echo "[checkout-test] JTL output: ${JTL_FILE}"
+echo "[checkout-test] Chaos file: ${CHAOS_FILE}"
+echo "[checkout-test] Frontend: ${FRONTEND_SCHEME}://${FRONTEND_HOST}:${FRONTEND_PORT}"
 
 "${JMETER_BIN}" -n \
   -t "${TEST_PLAN}" \
@@ -80,22 +80,22 @@ echo "[member-c] Frontend: ${FRONTEND_SCHEME}://${FRONTEND_HOST}:${FRONTEND_PORT
   -JCURRENCY_CODE="${CURRENCY_CODE}" &
 JMETER_PID="$!"
 
-echo "[member-c] Warm-up for ${CHAOS_DELAY_SECONDS}s before applying chaos."
+echo "[checkout-test] Warm-up for ${CHAOS_DELAY_SECONDS}s before applying chaos."
 sleep "${CHAOS_DELAY_SECONDS}"
 
-echo "[member-c] Applying ChaosMesh experiment."
+echo "[checkout-test] Applying ChaosMesh experiment."
 kubectl apply -f "${CHAOS_FILE}"
 
 wait "${JMETER_PID}"
 JMETER_PID=""
 
-echo "[member-c] Deleting ChaosMesh experiment."
+echo "[checkout-test] Deleting ChaosMesh experiment."
 kubectl delete -f "${CHAOS_FILE}" --ignore-not-found
 
-echo "[member-c] Analyzing JTL."
-python3 "${ROOT_DIR}/tests/member_c/scripts/analyze_jmeter_results.py" \
+echo "[checkout-test] Analyzing JTL."
+python3 "${ROOT_DIR}/tests/performance/scripts/analyze_jmeter_results.py" \
   --jtl "${JTL_FILE}" \
   --out-dir "${RESULTS_DIR}/${RUN_NAME}-analysis" \
   --label-filter "${ANALYZE_LABEL}"
 
-echo "[member-c] Done. Analysis: ${RESULTS_DIR}/${RUN_NAME}-analysis"
+echo "[checkout-test] Done. Analysis: ${RESULTS_DIR}/${RUN_NAME}-analysis"

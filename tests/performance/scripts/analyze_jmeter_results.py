@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Analyze JMeter JTL output for Member C SLA reporting.
+"""Analyze JMeter JTL output for checkout SLA reporting.
 
 The script reads the CSV JTL produced by online_boutique_checkout_pressure.jmx
 and writes:
@@ -37,7 +37,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--jtl", required=True, help="Path to JMeter .jtl CSV file")
     parser.add_argument(
         "--out-dir",
-        default="results/member_c/jmeter",
+        default="results/testing/jmeter",
         help="Output directory for summary, CSV and SVG",
     )
     parser.add_argument(
@@ -218,7 +218,7 @@ def write_svg(path: Path, rows: list[dict[str, float]]) -> None:
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{total_height}" viewBox="0 0 {width} {total_height}">',
         '<rect width="100%" height="100%" fill="#ffffff"/>',
         '<style>text{font-family:Arial,Helvetica,sans-serif;font-size:13px}.title{font-size:18px;font-weight:700}.axis{stroke:#999;stroke-width:1}.grid{stroke:#e5e7eb;stroke-width:1}</style>',
-        '<text class="title" x="24" y="26">Member C Chaos Load Test SLA Curves</text>',
+        '<text class="title" x="24" y="26">Checkout Chaos Load Test SLA Curves</text>',
     ]
 
     plot_width = width - margin_left - margin_right
@@ -263,7 +263,7 @@ def write_summary(
     p95_ok = overall["p95_ms"] <= sla_p95_ms
     error_ok = overall["error_rate"] <= sla_error_rate
     lines = [
-        "# Member C JMeter SLA Summary",
+        "# Checkout JMeter SLA Summary",
         "",
         f"- Source JTL: `{jtl_path}`",
         f"- Samples: {int(overall['samples'])}",

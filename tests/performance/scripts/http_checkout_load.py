@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""HTTP fallback load runner for Member C checkout testing.
+"""HTTP fallback load runner for checkout testing.
 
 This runner mirrors the JMeter checkout scenario with only the Python standard
 library. It is intended for environments where Java, JMeter, Selenium, or a
@@ -98,7 +98,7 @@ class HttpSession:
         url = urljoin(self.base_url, path.lstrip("/"))
         encoded = urlencode(data or {}).encode("utf-8") if data is not None else None
         headers = {
-            "User-Agent": "Member-C-Python-CheckoutLoad/1.0",
+            "User-Agent": "Checkout-Python-Load/1.0",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         }
         if encoded is not None:
@@ -228,14 +228,14 @@ class EvidenceCapture:
         index = """<!doctype html>
 <html lang="zh-CN">
 <meta charset="utf-8">
-<title>Member C Evidence Index</title>
+<title>Checkout Evidence Index</title>
 <style>
 body{font-family:Arial,Helvetica,sans-serif;margin:32px;color:#1f2937}
 table{border-collapse:collapse;width:100%;max-width:1080px}
 th,td{border:1px solid #d1d5db;padding:8px 10px;text-align:left}
 th{background:#f3f4f6}
 </style>
-<h1>Member C HTTP Evidence</h1>
+<h1>Checkout HTTP Evidence</h1>
 <p>These HTML files are raw frontend responses captured during the first
 successful test iteration.</p>
 <table>
@@ -250,13 +250,13 @@ successful test iteration.</p>
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run Member C HTTP checkout load and write JTL.")
+    parser = argparse.ArgumentParser(description="Run HTTP checkout load and write JTL.")
     parser.add_argument("--frontend-url", required=True, help="Frontend base URL")
     parser.add_argument("--out-jtl", required=True, help="Output CSV JTL path")
     parser.add_argument("--summary-json", required=True, help="Output JSON summary path")
     parser.add_argument("--evidence-dir", help="Directory for captured HTML evidence")
     parser.add_argument("--product-id", default=DEFAULT_PRODUCT_ID)
-    parser.add_argument("--quantity", default="1")
+    parser.add_argument("--quantity", default="2")
     parser.add_argument("--currency-code", default="USD")
     parser.add_argument("--threads", type=int, default=5)
     parser.add_argument("--duration-seconds", type=float, default=60.0)
@@ -269,7 +269,7 @@ def parse_args() -> argparse.Namespace:
 
 def checkout_fields() -> dict[str, str]:
     return {
-        "email": f"member-c-{uuid.uuid4()}@example.com",
+        "email": f"checkout-test-{uuid.uuid4()}@example.com",
         "street_address": "1600 Amphitheatre Parkway",
         "zip_code": "94043",
         "city": "Mountain View",

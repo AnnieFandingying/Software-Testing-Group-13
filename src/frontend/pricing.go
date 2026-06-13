@@ -1,12 +1,23 @@
 package main
 
 import (
+	"strings"
+
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/frontend/genproto"
 	"github.com/GoogleCloudPlatform/microservices-demo/src/frontend/money"
 )
 
+var discountCurrencies = map[string]struct{}{
+	"EUR": {},
+	"USD": {},
+	"JPY": {},
+	"GBP": {},
+	"TRY": {},
+	"CAD": {},
+}
+
 func applyDisplayDiscount(currency string, total pb.Money) pb.Money {
-	if currency != "CNY" {
+	if !isDiscountCurrency(currency) {
 		return total
 	}
 	discount := pb.Money{CurrencyCode: currency}
@@ -21,4 +32,9 @@ func applyDisplayDiscount(currency string, total pb.Money) pb.Money {
 		return total
 	}
 	return money.Must(money.Sum(total, money.Negate(discount)))
+}
+
+func isDiscountCurrency(currency string) bool {
+	_, ok := discountCurrencies[strings.ToUpper(currency)]
+	return ok
 }

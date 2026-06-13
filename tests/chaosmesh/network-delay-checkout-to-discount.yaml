@@ -1,10 +1,10 @@
 apiVersion: chaos-mesh.org/v1alpha1
 kind: NetworkChaos
 metadata:
-  name: member-c-checkout-to-discount-delay
+  name: checkout-to-discount-delay
   namespace: default
   labels:
-    role: member-c
+    test-suite: checkout-chaos
     scenario: checkout-discount-latency
 spec:
   action: delay

@@ -1,7 +1,7 @@
-# Member C ChaosMesh Scenarios
+# ChaosMesh Test Scenarios
 
 These experiments target the Online Boutique services deployed in the `default`
-namespace. If Member A deploys into another namespace, replace both
+namespace. If the platform deployment uses another namespace, replace both
 `metadata.namespace` and `spec.selector.namespaces`.
 
 ## Scenarios
@@ -17,15 +17,17 @@ namespace. If Member A deploys into another namespace, replace both
 ## Manual Run
 
 ```bash
-kubectl apply -f tests/member_c/chaosmesh/network-delay-checkout-to-discount.yaml
+kubectl apply -f tests/chaosmesh/network-delay-checkout-to-discount.yaml
 kubectl get networkchaos -n default
-kubectl delete -f tests/member_c/chaosmesh/network-delay-checkout-to-discount.yaml
+kubectl delete -f tests/chaosmesh/network-delay-checkout-to-discount.yaml
 ```
 
 ## Coupled Load Run
 
 ```bash
-FRONTEND_HOST=<member-a-ip> FRONTEND_PORT=80 \
-CHAOS_FILE=tests/member_c/chaosmesh/network-delay-checkout-to-discount.yaml \
-bash tests/member_c/scripts/run_chaos_load_test.sh
+FRONTEND_HOST=<frontend-ip> FRONTEND_PORT=80 \
+THREADS=10 RAMP_SECONDS=120 DURATION_SECONDS=1800 \
+PRODUCT_QUANTITY=2 CURRENCY_CODE=USD \
+CHAOS_FILE=tests/chaosmesh/network-delay-checkout-to-discount.yaml \
+bash tests/performance/scripts/run_chaos_load_test.sh
 ```
