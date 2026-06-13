@@ -42,7 +42,8 @@ spec:
                 - ALL
             privileged: false
             readOnlyRootFilesystem: true
-          image: checkoutservice
+          image: crpi-3qhk4rm49t1wiwvp.cn-hangzhou.personal.cr.aliyuncs.com/vowit/checkoutservice:618-v1
+          imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 5050
           readinessProbe:

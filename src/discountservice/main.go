@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"os"
 	"time"
-
-	"cloud.google.com/go/profiler"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -44,12 +42,7 @@ func main() {
 		TimestampFormat: time.RFC3339Nano,
 	}
 	log.Out = os.Stdout
-
-	if os.Getenv("ENABLE_PROFILER") == "1" {
-		go initProfiling(log, "discountservice", "1.0.0")
-	}
-
-	telemetryURL := os.Getenv("TELEMETRY_SERVICE_URL")
+telemetryURL := os.Getenv("TELEMETRY_SERVICE_URL")
 	reporter := telemetryReporter(noopTelemetryReporter{})
 	if telemetryURL != "" {
 		reporter = &httpTelemetryReporter{
@@ -76,21 +69,6 @@ func main() {
 	log.Fatal(srv.Serve(lis))
 }
 
-func initProfiling(log *logrus.Logger, service, version string) {
-	for i := 1; i <= 3; i++ {
-		if err := profiler.Start(profiler.Config{
-			Service:        service,
-			ServiceVersion: version,
-		}); err != nil {
-			log.Warnf("failed to start profiler: %+v", err)
-		} else {
-			log.Info("started Stackdriver profiler")
-			return
-		}
-		time.Sleep(time.Second * 10 * time.Duration(i))
-	}
-}
-
 func (r *httpTelemetryReporter) ReportAsync(evt telemetryEvent) {
 	go func() {
 		body, err := json.Marshal(evt)
@@ -115,3 +93,4 @@ func (r *httpTelemetryReporter) ReportAsync(evt telemetryEvent) {
 		}
 	}()
 }
+

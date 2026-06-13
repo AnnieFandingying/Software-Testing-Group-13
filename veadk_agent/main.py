@@ -165,6 +165,8 @@ def run_once_mode(alert_context: str, config: AgentConfig):
     agent = AIOpsAgent(config)
     report = agent.diagnose(alert_context)
 
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
     print("\n" + "=" * 60)
     print("[Agent 最终诊断报告]")
     print("=" * 60)
