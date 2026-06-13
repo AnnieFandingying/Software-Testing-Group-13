@@ -1,0 +1,33 @@
+services:
+  frontend:
+    image: crpi-3qhk4rm49t1wiwvp.cn-hangzhou.personal.cr.aliyuncs.com/vowit/frontend:618-v1
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - PRODUCT_CATALOG_SERVICE_ADDR=host.docker.internal:3550
+      - CART_SERVICE_ADDR=host.docker.internal:7070
+      - CURRENCY_SERVICE_ADDR=host.docker.internal:7000
+      - SHIPPING_SERVICE_ADDR=host.docker.internal:50051
+      - CHECKOUT_SERVICE_ADDR=host.docker.internal:5050
+
+  checkoutservice:
+    image: crpi-3qhk4rm49t1wiwvp.cn-hangzhou.personal.cr.aliyuncs.com/vowit/checkoutservice:618-v1
+    ports:
+      - "5050:5050"
+    environment:
+      - PORT=5050
+      - PRODUCT_CATALOG_SERVICE_ADDR=host.docker.internal:3550
+      - SHIPPING_SERVICE_ADDR=host.docker.internal:50051
+      - CART_SERVICE_ADDR=host.docker.internal:7070
+      - CURRENCY_SERVICE_ADDR=host.docker.internal:7000
+
+  discountservice:
+    image: crpi-3qhk4rm49t1wiwvp.cn-hangzhou.personal.cr.aliyuncs.com/vowit/discountservice:618-v1
+    ports:
+      - "8081:8081"
+
+  telemetryservice:
+    image: crpi-3qhk4rm49t1wiwvp.cn-hangzhou.personal.cr.aliyuncs.com/vowit/telemetryservice:618-v1
+    ports:
+      - "8082:8082"

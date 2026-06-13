@@ -1,0 +1,10 @@
+with open("Dockerfile", "w", newline="\n", encoding="ascii") as f:
+    f.write("FROM alpine:3.19\n")
+    f.write("RUN apk add --no-cache python3 py3-pip\n")
+    f.write("WORKDIR /app\n")
+    f.write("COPY requirements.txt .\n")
+    f.write("RUN pip3 install --no-cache-dir --break-system-packages -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt\n")
+    f.write("COPY . .\n")
+    f.write("EXPOSE 8080\n")
+    f.write('CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]\n')
+print("OK")

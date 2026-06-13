@@ -1,0 +1,18 @@
+﻿{
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "TestAlert",
+        "severity": "warning",
+        "service": "frontend"
+      },
+      "annotations": {
+        "summary": "A测试连通性",
+        "description": "这是一条测试告警"
+      },
+      "startsAt": "2026-06-13T12:00:00Z"
+    }
+  ]
+}

@@ -38,6 +38,8 @@ build:
     context: src/discountservice
   - image: telemetryservice
     context: src/telemetryservice
+  - image: crpi-58q90d93wk1qq3wp.cn-hangzhou.personal.cr.aliyuncs.com/nick3455575119/recoverygateway
+    context: src/recoverygateway
   - image: paymentservice
     context: src/paymentservice
   - image: currencyservice
@@ -118,3 +120,7 @@ profiles:
       diskSizeGb: 300
       machineType: N1_HIGHCPU_32
       timeout: 4000s
+
+
+
+
