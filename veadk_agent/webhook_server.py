@@ -18,11 +18,14 @@ import time
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Query
+from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel, Field
 
 from .agent import AIOpsAgent, get_agent
 from .config import get_config
+from .dashboard import render_history, render_detail, render_stats, render_health, render_cluster_health
+from .report_store import get_store
 
 logger = logging.getLogger("veadk.webhook")
 
@@ -211,37 +214,65 @@ async def handle_alert(request: Request):
     severity_order = {"critical": 0, "warning": 1, "info": 2}
     firing_alerts.sort(key=lambda a: severity_order.get(a.get("labels", {}).get("severity", "info"), 99))
 
-    # 处理每个告警（有冷却期保护）
+    # 告警聚合：多条告警时进行关联分析，识别共同根因
     agent = _get_agent()
     reports = []
+    start = time.perf_counter()
 
-    for alert_dict in firing_alerts[:3]:  # 最多处理 3 个告警
-        alert = AlertItem(**alert_dict)
-        fingerprint = _make_fingerprint(alert_dict)
-        alert_text = _format_alert_for_agent(alert)
-
-        logger.info("处理告警: fingerprint=%s alertname=%s", fingerprint, alert.labels.alertname)
-
-        start = time.perf_counter()
-        report = agent.diagnose(alert_text, alert_fingerprint=fingerprint)
+    if len(firing_alerts) >= 2:
+        # 多条告警 → 聚合推理，识别共同根因
+        logger.info("触发聚合诊断: %d 条告警", len(firing_alerts))
+        alert_dicts = [
+            {
+                "alertname": a.get("labels", {}).get("alertname", ""),
+                "severity": a.get("labels", {}).get("severity", "info"),
+                "service": a.get("labels", {}).get("service", "unknown"),
+                "summary": a.get("annotations", {}).get("summary", ""),
+                "description": a.get("annotations", {}).get("description", ""),
+            }
+            for a in firing_alerts[:5]
+        ]
+        report = agent.bulk_diagnose(alert_dicts)
         elapsed_ms = (time.perf_counter() - start) * 1000
-
         _diagnosis_count += 1
-
         reports.append({
-            "fingerprint": fingerprint,
-            "alertname": alert.labels.alertname,
-            "severity": alert.labels.severity,
+            "fingerprint": "aggregated",
+            "alertname": f"聚合诊断 ({len(alert_dicts)}条告警)",
+            "severity": "critical",
             "report": report,
             "elapsed_ms": elapsed_ms,
         })
+        logger.info("聚合诊断完成 (%.0fms)", elapsed_ms)
+    else:
+        # 单条告警 → 常规处理
+        for alert_dict in firing_alerts[:3]:
+            alert = AlertItem(**alert_dict)
+            fingerprint = _make_fingerprint(alert_dict)
+            alert_text = _format_alert_for_agent(alert)
 
-        logger.info("告警 %s 诊断完成 (%.0fms)", fingerprint, elapsed_ms)
+            logger.info("处理告警: fingerprint=%s alertname=%s", fingerprint, alert.labels.alertname)
+
+            single_start = time.perf_counter()
+            report = agent.diagnose(alert_text, alert_fingerprint=fingerprint)
+            single_elapsed = (time.perf_counter() - single_start) * 1000
+
+            _diagnosis_count += 1
+
+            reports.append({
+                "fingerprint": fingerprint,
+                "alertname": alert.labels.alertname,
+                "severity": alert.labels.severity,
+                "report": report,
+                "elapsed_ms": single_elapsed,
+            })
+
+            logger.info("告警 %s 诊断完成 (%.0fms)", fingerprint, single_elapsed)
 
     return {
         "ok": True,
         "alerts_received": len(alerts),
         "alerts_processed": len(reports),
+        "aggregated": len(firing_alerts) >= 2,
         "diagnosis_results": reports,
     }
 
@@ -268,3 +299,92 @@ def manual_diagnose(req: DiagnoseRequest):
         report=report,
         elapsed_ms=elapsed_ms,
     )
+
+
+@app.post("/simulate")
+def simulate_alert(req: DiagnoseRequest):
+    """
+    🆕 模拟告警 — 仪表盘一键触发诊断（演示用）。
+    无需等待 Alertmanager，点按钮即可触发完整诊断流程。
+    """
+    global _diagnosis_count
+    from .report_store import get_store
+    agent = _get_agent()
+    store = get_store()
+
+    start = time.perf_counter()
+    report = agent.diagnose(req.alert_context)
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    _diagnosis_count += 1
+
+    # 返回最新记录 ID（刚保存的）
+    record_id = store.count()
+
+    return {
+        "ok": True,
+        "record_id": record_id,
+        "report": report[:500],
+        "elapsed_ms": round(elapsed_ms),
+    }
+
+
+# ============================================================================
+# 仪表盘 & 历史查询端点
+# ============================================================================
+
+@app.get("/history", response_class=HTMLResponse)
+def history_dashboard(view: str = Query(default="list", description="视图类型: list | stats | cluster | health")):
+    """
+    Web 仪表盘主页。
+    - /history → 诊断历史列表
+    - /history?view=stats → 统计面板
+    - /history?view=cluster → 集群健康评分
+    - /history?view=health → 健康检查
+    """
+    store = get_store()
+
+    if view == "stats":
+        return HTMLResponse(render_stats(store.stats()))
+
+    if view == "cluster":
+        return HTMLResponse(render_cluster_health(store.get_all(limit=20)))
+
+    if view == "health":
+        cfg = get_config()
+        return HTMLResponse(render_health(
+            uptime=time.time() - _start_time,
+            diagnosis_count=_diagnosis_count,
+            prometheus_url=cfg.prometheus_url,
+            gateway_url=cfg.recovery_gateway_url,
+        ))
+
+    records = store.get_all(limit=20)
+    stats = store.stats()
+    return HTMLResponse(render_history(records, stats))
+
+
+@app.get("/history/stats")
+def history_stats():
+    """诊断统计 JSON API"""
+    store = get_store()
+    return store.stats()
+
+
+@app.get("/history/{record_id}", response_class=HTMLResponse)
+def history_detail(record_id: int):
+    """单条诊断详情页"""
+    store = get_store()
+    record = store.get_by_id(record_id)
+    if not record:
+        raise HTTPException(status_code=404, detail="记录不存在")
+    return HTMLResponse(render_detail(record))
+
+
+@app.get("/reports/{filename}")
+def download_report(filename: str):
+    """下载 Markdown 报告文件"""
+    from .report_store import REPORTS_DIR
+    filepath = REPORTS_DIR / filename
+    if not filepath.exists():
+        raise HTTPException(status_code=404, detail="报告文件不存在")
+    return FileResponse(str(filepath), media_type="text/markdown", filename=filename)
