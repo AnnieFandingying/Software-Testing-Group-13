@@ -2,7 +2,7 @@
 <jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
   <hashTree>
     <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Member C - Online Boutique Checkout Pressure" enabled="true">
-      <stringProp name="TestPlan.comments">Role C JMeter plan: browse product, add to cart, checkout with CNY discount, and collect TPS/error/latency during ChaosMesh faults.</stringProp>
+      <stringProp name="TestPlan.comments">Role C JMeter plan: browse product, set currency, add to cart, checkout, and collect TPS/error/latency during ChaosMesh faults.</stringProp>
       <boolProp name="TestPlan.functional_mode">false</boolProp>
       <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
@@ -30,6 +30,11 @@
           <elementProp name="PRODUCT_QUANTITY" elementType="Argument">
             <stringProp name="Argument.name">PRODUCT_QUANTITY</stringProp>
             <stringProp name="Argument.value">${__P(PRODUCT_QUANTITY,1)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="CURRENCY_CODE" elementType="Argument">
+            <stringProp name="Argument.name">CURRENCY_CODE</stringProp>
+            <stringProp name="Argument.value">${__P(CURRENCY_CODE,USD)}</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -75,6 +80,14 @@
           </collectionProp>
         </HeaderManager>
         <hashTree/>
+        <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Request Defaults - Timeouts" enabled="true">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.connect_timeout">${__P(CONNECT_TIMEOUT_MS,5000)}</stringProp>
+          <stringProp name="HTTPSampler.response_timeout">${__P(RESPONSE_TIMEOUT_MS,30000)}</stringProp>
+        </ConfigTestElement>
+        <hashTree/>
         <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="E2E Browse And Checkout" enabled="true">
           <boolProp name="TransactionController.includeTimers">false</boolProp>
           <boolProp name="TransactionController.parent">true</boolProp>
@@ -96,14 +109,14 @@
             <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
           </HTTPSamplerProxy>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST Set Currency CNY" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST Set Currency" enabled="true">
             <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
             <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
               <collectionProp name="Arguments.arguments">
                 <elementProp name="currency_code" elementType="HTTPArgument">
                   <boolProp name="HTTPArgument.always_encode">false</boolProp>
                   <stringProp name="Argument.name">currency_code</stringProp>
-                  <stringProp name="Argument.value">CNY</stringProp>
+                  <stringProp name="Argument.value">${CURRENCY_CODE}</stringProp>
                   <stringProp name="Argument.metadata">=</stringProp>
                   <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 </elementProp>
@@ -187,7 +200,7 @@
             <stringProp name="ConstantTimer.delay">${__Random(300,1200)}</stringProp>
           </ConstantTimer>
           <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST Checkout CNY Discount" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST Checkout" enabled="true">
             <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
             <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
               <collectionProp name="Arguments.arguments">

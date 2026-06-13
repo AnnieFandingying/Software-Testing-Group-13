@@ -54,7 +54,30 @@ results/member_c/selenium/checkout_discount_results.jsonl
 
 ## JMeter Baseline Pressure Test
 
-Run a no-chaos baseline:
+Before a formal chaos run, execute a short USD smoke baseline. The current
+deployed frontend does not expose CNY in the UI, so USD is used to verify the
+main checkout path without depending on `discountservice`:
+
+```bash
+mkdir -p results/member_c/jmeter
+jmeter -n \
+  -t tests/member_c/jmeter/online_boutique_checkout_pressure.jmx \
+  -l results/member_c/jmeter/baseline_smoke.jtl \
+  -JRESULTS_FILE=results/member_c/jmeter/baseline_smoke.jtl \
+  -JFRONTEND_SCHEME=http \
+  -JFRONTEND_HOST=100.110.3.67 \
+  -JFRONTEND_PORT=18081 \
+  -JTHREADS=1 \
+  -JRAMP_SECONDS=1 \
+  -JDURATION_SECONDS=60 \
+  -JCONNECT_TIMEOUT_MS=5000 \
+  -JRESPONSE_TIMEOUT_MS=30000 \
+  -JCURRENCY_CODE=USD \
+  -Jsummariser.interval=10
+```
+
+Run a no-chaos baseline. The command below targets the current Tailscale
+frontend; replace the host/port if Member A uses a local port-forward instead:
 
 ```bash
 mkdir -p results/member_c/jmeter
@@ -62,11 +85,16 @@ jmeter -n \
   -t tests/member_c/jmeter/online_boutique_checkout_pressure.jmx \
   -l results/member_c/jmeter/baseline.jtl \
   -JRESULTS_FILE=results/member_c/jmeter/baseline.jtl \
-  -JFRONTEND_HOST=127.0.0.1 \
-  -JFRONTEND_PORT=8080 \
+  -JFRONTEND_SCHEME=http \
+  -JFRONTEND_HOST=100.110.3.67 \
+  -JFRONTEND_PORT=18081 \
   -JTHREADS=50 \
   -JRAMP_SECONDS=60 \
-  -JDURATION_SECONDS=600
+  -JDURATION_SECONDS=600 \
+  -JCONNECT_TIMEOUT_MS=5000 \
+  -JRESPONSE_TIMEOUT_MS=30000 \
+  -JCURRENCY_CODE=USD \
+  -Jsummariser.interval=10
 ```
 
 Analyze the JTL:
@@ -89,11 +117,16 @@ Generated artifacts:
 Example with checkoutservice -> discountservice network delay:
 
 ```bash
-FRONTEND_HOST=127.0.0.1 \
-FRONTEND_PORT=8080 \
+FRONTEND_SCHEME=http \
+FRONTEND_HOST=100.110.3.67 \
+FRONTEND_PORT=18081 \
 THREADS=50 \
 RAMP_SECONDS=60 \
 DURATION_SECONDS=600 \
+CONNECT_TIMEOUT_MS=5000 \
+RESPONSE_TIMEOUT_MS=30000 \
+CURRENCY_CODE=USD \
+SUMMARISER_INTERVAL_SECONDS=10 \
 CHAOS_DELAY_SECONDS=120 \
 CHAOS_FILE=tests/member_c/chaosmesh/network-delay-checkout-to-discount.yaml \
 bash tests/member_c/scripts/run_chaos_load_test.sh
@@ -109,6 +142,24 @@ Repeat the same command with:
 ## Suggested SLA Gate
 
 Use the same thread/ramp/duration settings for baseline and chaos runs.
+
+During a non-GUI JMeter run, the terminal summary is the live monitor. Watch:
+
+- `/s`: throughput
+- `Avg` and `Max`: latency trend
+- `Err`: failed request count and error rate
+- `Active`: active thread count
+
+The generated `.jtl` is the source of truth for the final report. If the smoke
+baseline already has checkout 500 errors, pause chaos testing and ask Member A
+to check `checkoutservice`, `discountservice`, and payment/email dependencies
+before collecting formal fault data.
+
+USD checkout verifies the main order path and is suitable for frontend,
+productcatalog, checkout, pod-kill, and CPU/load fault observations. It does
+not validate the CNY 618 discount contract. To test `discountservice` and the
+`checkoutservice -> discountservice` network-delay experiment, Member A must
+first deploy a healthy `discountservice` and expose CNY in the frontend.
 
 | Metric | Baseline target | Chaos acceptance |
 |---|---:|---:|

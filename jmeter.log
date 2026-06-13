@@ -1,0 +1,73 @@
+2026-06-14 04:02:06,955 INFO o.a.j.u.JMeterUtils: Setting Locale to en_EN
+2026-06-14 04:02:06,967 INFO o.a.j.JMeter: Loading user properties from: /opt/homebrew/Cellar/jmeter/5.6.3/libexec/bin/user.properties
+2026-06-14 04:02:06,967 INFO o.a.j.JMeter: Loading system properties from: /opt/homebrew/Cellar/jmeter/5.6.3/libexec/bin/system.properties
+2026-06-14 04:02:06,968 INFO o.a.j.JMeter: Setting JMeter property: RESULTS_FILE=results/member_c/jmeter/usd_baseline_smoke.jtl
+2026-06-14 04:02:06,968 INFO o.a.j.JMeter: Setting JMeter property: FRONTEND_SCHEME=http
+2026-06-14 04:02:06,968 INFO o.a.j.JMeter: Setting JMeter property: FRONTEND_HOST=100.110.3.67
+2026-06-14 04:02:06,968 INFO o.a.j.JMeter: Setting JMeter property: FRONTEND_PORT=18081
+2026-06-14 04:02:06,968 INFO o.a.j.JMeter: Setting JMeter property: THREADS=1
+2026-06-14 04:02:06,968 INFO o.a.j.JMeter: Setting JMeter property: RAMP_SECONDS=1
+2026-06-14 04:02:06,968 INFO o.a.j.JMeter: Setting JMeter property: DURATION_SECONDS=60
+2026-06-14 04:02:06,968 INFO o.a.j.JMeter: Setting JMeter property: CONNECT_TIMEOUT_MS=5000
+2026-06-14 04:02:06,968 INFO o.a.j.JMeter: Setting JMeter property: RESPONSE_TIMEOUT_MS=30000
+2026-06-14 04:02:06,968 INFO o.a.j.JMeter: Setting JMeter property: CURRENCY_CODE=USD
+2026-06-14 04:02:06,968 INFO o.a.j.JMeter: Setting JMeter property: summariser.interval=10
+2026-06-14 04:02:06,972 INFO o.a.j.JMeter: Copyright (c) 1998-2024 The Apache Software Foundation
+2026-06-14 04:02:06,972 INFO o.a.j.JMeter: Version 5.6.3
+2026-06-14 04:02:06,972 INFO o.a.j.JMeter: java.version=21.0.11
+2026-06-14 04:02:06,972 INFO o.a.j.JMeter: java.vm.name=OpenJDK 64-Bit Server VM
+2026-06-14 04:02:06,972 INFO o.a.j.JMeter: os.name=Mac OS X
+2026-06-14 04:02:06,972 INFO o.a.j.JMeter: os.arch=aarch64
+2026-06-14 04:02:06,972 INFO o.a.j.JMeter: os.version=26.2
+2026-06-14 04:02:06,972 INFO o.a.j.JMeter: file.encoding=UTF-8
+2026-06-14 04:02:06,972 INFO o.a.j.JMeter: java.awt.headless=true
+2026-06-14 04:02:06,972 INFO o.a.j.JMeter: Max memory     =1073741824
+2026-06-14 04:02:06,972 INFO o.a.j.JMeter: Available Processors =12
+2026-06-14 04:02:06,980 INFO o.a.j.JMeter: Default Locale=English (EN)
+2026-06-14 04:02:06,980 INFO o.a.j.JMeter: JMeter  Locale=English (EN)
+2026-06-14 04:02:06,980 INFO o.a.j.JMeter: JMeterHome=/opt/homebrew/Cellar/jmeter/5.6.3/libexec
+2026-06-14 04:02:06,980 INFO o.a.j.JMeter: user.dir  =/Users/imnort/Library/Mobile Documents/com~apple~CloudDocs/大学/大三下/软件测试/Software-Testing-Group-13
+2026-06-14 04:02:06,980 INFO o.a.j.JMeter: PWD       =/Users/imnort/Library/Mobile Documents/com~apple~CloudDocs/大学/大三下/软件测试/Software-Testing-Group-13
+2026-06-14 04:02:06,986 INFO o.a.j.JMeter: IP: 127.0.0.1 Name: DairuMacBook-Pro.local FullName: localhost
+2026-06-14 04:02:06,994 INFO o.a.j.s.FileServer: Default base='/Users/imnort/Library/Mobile Documents/com~apple~CloudDocs/大学/大三下/软件测试/Software-Testing-Group-13'
+2026-06-14 04:02:06,995 INFO o.a.j.s.FileServer: Set new base='/Users/imnort/Library/Mobile Documents/com~apple~CloudDocs/大学/大三下/软件测试/Software-Testing-Group-13/tests/member_c/jmeter'
+2026-06-14 04:02:07,099 INFO o.a.j.s.SaveService: Testplan (JMX) version: 2.2. Testlog (JTL) version: 2.2
+2026-06-14 04:02:07,115 INFO o.a.j.s.SaveService: Using SaveService properties version 5.0
+2026-06-14 04:02:07,117 INFO o.a.j.s.SaveService: Using SaveService properties file encoding UTF-8
+2026-06-14 04:02:07,118 INFO o.a.j.s.SaveService: Loading file: tests/member_c/jmeter/online_boutique_checkout_pressure.jmx
+2026-06-14 04:02:07,141 INFO o.a.j.p.h.c.CookieManager: Settings: Delete null: true Check: true Allow variable: true Save: false Prefix: COOKIE_
+2026-06-14 04:02:07,143 INFO o.a.j.p.h.c.CacheManager: Will only cache the following methods: [GET]
+2026-06-14 04:02:07,155 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/html is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-06-14 04:02:07,156 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xhtml+xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-06-14 04:02:07,156 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-06-14 04:02:07,156 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2026-06-14 04:02:07,156 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/vnd.wap.wml is org.apache.jmeter.protocol.http.parser.RegexpHTMLParser
+2026-06-14 04:02:07,156 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/css is org.apache.jmeter.protocol.http.parser.CssParser
+2026-06-14 04:02:07,175 INFO o.a.j.JMeter: Creating summariser <summary>
+2026-06-14 04:02:07,181 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2026-06-14 04:02:07,181 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-06-14 04:02:07,181 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2026-06-14 04:02:07,182 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must contain the string: '.functions.'
+2026-06-14 04:02:07,182 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must not contain the string: '.gui.'
+2026-06-14 04:02:07,219 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.functions.Function], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2026-06-14 04:02:07,280 INFO o.a.j.JMeter: Running test (1781380927280)
+2026-06-14 04:02:07,289 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Checkout Concurrent Users
+2026-06-14 04:02:07,289 INFO o.a.j.e.StandardJMeterEngine: Starting 1 threads for group Checkout Concurrent Users.
+2026-06-14 04:02:07,289 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2026-06-14 04:02:07,289 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=1 ramp-up=1 delayedStart=false
+2026-06-14 04:02:07,291 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2026-06-14 04:02:07,291 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2026-06-14 04:02:07,292 INFO o.a.j.s.SampleResult: Note: Sample TimeStamps are START times
+2026-06-14 04:02:07,293 INFO o.a.j.s.SampleResult: sampleresult.default.encoding is set to UTF-8
+2026-06-14 04:02:07,293 INFO o.a.j.s.SampleResult: sampleresult.useNanoTime=true
+2026-06-14 04:02:07,293 INFO o.a.j.s.SampleResult: sampleresult.nanoThreadSleep=5000
+2026-06-14 04:02:07,293 INFO o.a.j.t.JMeterThread: Thread started: Checkout Concurrent Users 1-1
+2026-06-14 04:02:08,429 INFO o.a.j.p.h.s.HTTPHCAbstractImpl: Local host = DairuMacBook-Pro.local
+2026-06-14 04:02:08,430 INFO o.a.j.p.h.s.HTTPHC4Impl: HTTP request retry count = 0
+2026-06-14 04:02:25,570 INFO o.a.j.u.JsseSSLManager: Using default SSL protocol: TLS
+2026-06-14 04:02:25,571 INFO o.a.j.u.JsseSSLManager: SSL session context: per-thread
+2026-06-14 04:02:28,047 WARN o.a.j.p.h.s.HTTPSamplerBase: Existing CookieManager HTTP Cookie Manager superseded by HTTP Cookie Manager
+2026-06-14 04:02:34,688 WARN o.a.j.p.h.s.HTTPSamplerBase: Existing CookieManager HTTP Cookie Manager superseded by HTTP Cookie Manager
+2026-06-14 04:02:35,987 WARN o.a.j.p.h.s.HTTPSamplerBase: Existing CookieManager HTTP Cookie Manager superseded by HTTP Cookie Manager
+2026-06-14 04:02:40,946 INFO o.a.j.r.ResultCollector: Shutdown hook started
+2026-06-14 04:02:40,948 INFO o.a.j.r.ResultCollector: Shutdown hook ended

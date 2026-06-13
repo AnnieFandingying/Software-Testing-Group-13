@@ -1,0 +1,8 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1781380489685,8462,E2E Browse And Checkout,500,Internal Server Error,Checkout Concurrent Users 1-1,text,false,POST Checkout CNY Discount: HTTPError: Internal Server Error,66934,341,1,1,http://100.110.3.67:18081/cart/checkout,8462,0,0
+1781380489685,1130,GET Home,200,OK,Checkout Concurrent Users 1-1,text,true,,10499,0,1,1,http://100.110.3.67:18081/,1130,0,0
+1781380490816,1978,POST Set Currency CNY,200,OK,Checkout Concurrent Users 1-1,text,true,,10488,17,1,1,http://100.110.3.67:18081/,1978,0,0
+1781380492795,843,GET Product Detail,200,OK,Checkout Concurrent Users 1-1,text,true,,7949,0,1,1,http://100.110.3.67:18081/product/1YMWWN1N4O,843,0,0
+1781380493638,1894,POST Add To Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16425,32,1,1,http://100.110.3.67:18081/cart,1894,0,0
+1781380495531,1015,GET Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16407,0,1,1,http://100.110.3.67:18081/cart,1015,0,0
+1781380497376,765,POST Checkout CNY Discount,500,Internal Server Error,Checkout Concurrent Users 1-1,text,false,HTTPError: Internal Server Error,5166,292,1,1,http://100.110.3.67:18081/cart/checkout,765,0,0

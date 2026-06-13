@@ -1,0 +1,8 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1781369702307,50668,E2E Browse And Checkout,ERR,TimeoutError: timed out,Checkout Concurrent Users 1-1,text,false,GET Home: TimeoutError: timed out; POST Set Currency CNY: HTTPError: Bad Gateway; GET Product Detail: HTTPError: Bad Gateway; POST Add To Cart: HTTPError: Bad Gateway; GET Cart: HTTPError: Bad Gateway; POST Checkout CNY Discount: HTTPError: Bad Gateway,0,341,1,1,http://100.110.3.67:18081/cart/checkout,50668,0,0
+1781369702307,25005,GET Home,ERR,TimeoutError: timed out,Checkout Concurrent Users 1-1,text,false,TimeoutError: timed out,0,0,1,1,http://100.110.3.67:18081/,25005,0,0
+1781369727312,5012,POST Set Currency CNY,502,Bad Gateway,Checkout Concurrent Users 1-1,text,false,HTTPError: Bad Gateway,0,17,1,1,http://100.110.3.67:18081/setCurrency,5012,0,0
+1781369732324,5013,GET Product Detail,502,Bad Gateway,Checkout Concurrent Users 1-1,text,false,HTTPError: Bad Gateway,0,0,1,1,http://100.110.3.67:18081/product/1YMWWN1N4O,5013,0,0
+1781369737340,5007,POST Add To Cart,502,Bad Gateway,Checkout Concurrent Users 1-1,text,false,HTTPError: Bad Gateway,0,32,1,1,http://100.110.3.67:18081/cart,5007,0,0
+1781369742346,5009,GET Cart,502,Bad Gateway,Checkout Concurrent Users 1-1,text,false,HTTPError: Bad Gateway,0,0,1,1,http://100.110.3.67:18081/cart,5009,0,0
+1781369747965,5007,POST Checkout CNY Discount,502,Bad Gateway,Checkout Concurrent Users 1-1,text,false,HTTPError: Bad Gateway,0,292,1,1,http://100.110.3.67:18081/cart/checkout,5007,0,0
