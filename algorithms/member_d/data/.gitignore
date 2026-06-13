@@ -1,0 +1,7 @@
+kpi/raw/*
+kpi/processed/*
+logs/raw/*
+logs/processed/*
+labels/*
+
+!.gitignore

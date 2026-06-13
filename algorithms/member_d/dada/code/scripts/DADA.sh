@@ -1,0 +1,10 @@
+export CUDA_VISIBLE_DEVICES=0
+sh ./scripts/MSL/DADA.sh
+sh ./scripts/PSM/DADA.sh
+sh ./scripts/SMAP/DADA.sh
+sh ./scripts/SMD/DADA.sh
+sh ./scripts/SWAT/DADA.sh
+sh ./scripts/NIPS_CICIDS/DADA.sh
+sh ./scripts/NIPS_Creditcard/DADA.sh
+sh ./scripts/NIPS_GECCO/DADA.sh
+sh ./scripts/NIPS_SWAN/DADA.sh
