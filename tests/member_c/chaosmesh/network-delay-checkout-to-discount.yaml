@@ -1,0 +1,29 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: member-c-checkout-to-discount-delay
+  namespace: default
+  labels:
+    role: member-c
+    scenario: checkout-discount-latency
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces:
+      - default
+    labelSelectors:
+      app: checkoutservice
+  direction: to
+  target:
+    mode: all
+    selector:
+      namespaces:
+        - default
+      labelSelectors:
+        app: discountservice
+  delay:
+    latency: "800ms"
+    correlation: "50"
+    jitter: "120ms"
+  duration: "5m"

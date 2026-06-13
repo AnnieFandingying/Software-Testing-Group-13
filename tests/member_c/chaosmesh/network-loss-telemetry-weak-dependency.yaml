@@ -1,0 +1,21 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: member-c-telemetry-loss-weak-dependency
+  namespace: default
+  labels:
+    role: member-c
+    scenario: telemetry-weak-dependency
+spec:
+  action: loss
+  mode: all
+  selector:
+    namespaces:
+      - default
+    labelSelectors:
+      app: telemetryservice
+  direction: both
+  loss:
+    loss: "80"
+    correlation: "25"
+  duration: "5m"
