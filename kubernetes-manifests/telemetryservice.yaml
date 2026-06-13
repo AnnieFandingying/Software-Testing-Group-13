@@ -28,7 +28,8 @@ spec:
                 - ALL
             privileged: false
             readOnlyRootFilesystem: true
-          image: telemetryservice
+          image: crpi-3qhk4rm49t1wiwvp.cn-hangzhou.personal.cr.aliyuncs.com/vowit/telemetryservice:618-v1
+          imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 8080
           readinessProbe:
