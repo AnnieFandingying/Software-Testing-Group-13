@@ -1,0 +1,59 @@
+# TraceDAE 默认配置
+# 对应复现方案第七章参数设置
+
+model:
+  input_dim: 4              # 节点特征维度: [timestamp, response_time, cpu, memory]
+  hidden_dim: 128           # 隐藏层维度
+  num_heads: 4              # GAT 注意力头数
+  num_lstm_layers: 2        # LSTM 层数
+  alpha: 0.1                # 结构/属性损失平衡参数
+  theta: 40                 # 结构非零元素惩罚权重（D1）
+  eta: 5                    # 属性非零元素惩罚权重（D1）
+  dropout: 0.1              # Dropout 概率
+
+training:
+  batch_size: 32
+  learning_rate: 0.001
+  optimizer: "adam"
+  epochs: 100
+  early_stopping: 10        # 10 个 epoch 无改善则停止
+  weight_decay: 1.0e-5
+  gradient_clip: 1.0        # 梯度裁剪
+  seed: 42
+
+data:
+  dbscan_eps: 0.5
+  dbscan_min_samples: 5
+  window_size: 30           # 30 分钟时间窗口
+  train_ratio: 0.6
+  val_ratio: 0.1
+  test_ratio: 0.3
+  num_workers: 4
+
+detection:
+  z_score_threshold: 3      # 3σ 原则
+  top_k: 5                  # 根因定位 Top-k
+  window_size: 30           # 异常检测时间窗口（分钟）
+
+evaluation:
+  anomaly_metrics:
+    - "precision"
+    - "recall"
+    - "f1"
+    - "roc_auc"
+  rca_metrics:
+    - "a@1"                 # Top-1 命中率
+    - "a@2"                 # Top-2 命中率
+    - "a@3"                 # Top-3 命中率
+  ablation_variants:
+    - "w/o stg"             # 用 STV 替代 STG
+    - "w/o dbscan"          # 去除降噪
+    - "w/o attribute_ae"    # 仅用结构自编码器
+    - "w/o structure_ae"    # 仅用属性自编码器
+    - "alpha_0"             # α = 0（仅用属性）
+    - "alpha_1"             # α = 1（仅用结构）
+
+output:
+  log_dir: "./logs"
+  checkpoint_dir: "./data/models"
+  result_dir: "./experiments"

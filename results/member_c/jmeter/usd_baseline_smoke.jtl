@@ -1,0 +1,23 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1781380927293,12584,E2E Browse And Checkout,502,"Number of samples in transaction : 6, number of failing samples : 1",Checkout Concurrent Users 1-1,,false,,59813,3049,1,1,null,0,4881,13
+1781380928447,5031,GET Home,502,Bad Gateway,Checkout Concurrent Users 1-1,,false,,124,239,1,1,http://100.110.3.67:18081/,5027,0,13
+1781380933927,5220,POST Set Currency,200,OK,Checkout Concurrent Users 1-1,text,true,,11010,672,1,1,http://100.110.3.67:18081/,4541,0,0
+1781380933927,4541,POST Set Currency-0,302,Found,Checkout Concurrent Users 1-1,,true,,297,352,1,1,http://100.110.3.67:18081/setCurrency,4541,0,0
+1781380938474,673,POST Set Currency-1,200,OK,Checkout Concurrent Users 1-1,text,true,,10713,320,1,1,http://100.110.3.67:18081/,672,0,0
+1781380939946,439,GET Product Detail,200,OK,Checkout Concurrent Users 1-1,text,true,,8200,338,1,1,http://100.110.3.67:18081/product/1YMWWN1N4O,438,0,0
+1781380941126,979,POST Add To Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16833,765,1,1,http://100.110.3.67:18081/cart,360,0,0
+1781380941126,360,POST Add To Cart-0,302,Found,Checkout Concurrent Users 1-1,,true,,172,441,1,1,http://100.110.3.67:18081/cart,360,0,0
+1781380941487,618,POST Add To Cart-1,200,OK,Checkout Concurrent Users 1-1,text,true,,16661,324,1,1,http://100.110.3.67:18081/cart,618,0,0
+1781380943024,479,GET Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16643,324,1,1,http://100.110.3.67:18081/cart,479,0,0
+1781380944315,436,POST Checkout,200,OK,Checkout Concurrent Users 1-1,text,true,,7003,711,1,1,http://100.110.3.67:18081/cart/checkout,436,0,0
+1781380944770,5270,E2E Browse And Checkout,200,"Number of samples in transaction : 6, number of failing samples : 0",Checkout Concurrent Users 1-1,,true,,70442,3111,1,1,null,0,4646,1
+1781380945575,2471,GET Home,200,OK,Checkout Concurrent Users 1-1,text,true,,10795,239,1,1,http://100.110.3.67:18081/,2470,0,1
+1781380948742,975,POST Set Currency,200,OK,Checkout Concurrent Users 1-1,text,true,,10928,734,1,1,http://100.110.3.67:18081/,318,0,0
+1781380948742,318,POST Set Currency-0,302,Found,Checkout Concurrent Users 1-1,,true,,215,414,1,1,http://100.110.3.67:18081/setCurrency,318,0,0
+1781380949060,657,POST Set Currency-1,200,OK,Checkout Concurrent Users 1-1,text,true,,10713,320,1,1,http://100.110.3.67:18081/,657,0,0
+1781380950382,355,GET Product Detail,200,OK,Checkout Concurrent Users 1-1,text,true,,8212,338,1,1,http://100.110.3.67:18081/product/1YMWWN1N4O,355,0,0
+1781380951386,681,POST Add To Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16837,765,1,1,http://100.110.3.67:18081/cart,221,0,0
+1781380951386,221,POST Add To Cart-0,302,Found,Checkout Concurrent Users 1-1,,true,,172,441,1,1,http://100.110.3.67:18081/cart,221,0,0
+1781380951607,460,POST Add To Cart-1,200,OK,Checkout Concurrent Users 1-1,text,true,,16665,324,1,1,http://100.110.3.67:18081/cart,459,0,0
+1781380952792,443,GET Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16655,324,1,1,http://100.110.3.67:18081/cart,443,0,0
+1781380954340,345,POST Checkout,200,OK,Checkout Concurrent Users 1-1,text,true,,7015,711,1,1,http://100.110.3.67:18081/cart/checkout,344,0,0

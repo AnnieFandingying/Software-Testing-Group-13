@@ -1,0 +1,17 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: checkout-productcatalog-pod-failure
+  namespace: default
+  labels:
+    test-suite: checkout-chaos
+    scenario: productcatalog-pod-failure
+spec:
+  action: pod-failure
+  mode: one
+  selector:
+    namespaces:
+      - default
+    labelSelectors:
+      app: productcatalogservice
+  duration: "2m"

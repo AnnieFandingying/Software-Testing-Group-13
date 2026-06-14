@@ -1,0 +1,72 @@
+{
+  "generated_at_utc": "2026-06-13T16:55:52.976752+00:00",
+  "frontend_url": "http://100.110.3.67:18081",
+  "product_id": "1YMWWN1N4O",
+  "quantity": "1",
+  "threads": 1,
+  "duration_seconds_arg": 0.0,
+  "iterations_per_thread": 1,
+  "total_samples": 7,
+  "e2e_transactions": 1,
+  "e2e_failed": 1,
+  "e2e_error_rate": 1.0,
+  "e2e_tps": 1.0,
+  "label_summary": {
+    "E2E Browse And Checkout": {
+      "samples": 1,
+      "failed": 1,
+      "error_rate": 1.0,
+      "avg_ms": 50668,
+      "p95_ms": 50668,
+      "max_ms": 50668
+    },
+    "GET Cart": {
+      "samples": 1,
+      "failed": 1,
+      "error_rate": 1.0,
+      "avg_ms": 5009,
+      "p95_ms": 5009,
+      "max_ms": 5009
+    },
+    "GET Home": {
+      "samples": 1,
+      "failed": 1,
+      "error_rate": 1.0,
+      "avg_ms": 25005,
+      "p95_ms": 25005,
+      "max_ms": 25005
+    },
+    "GET Product Detail": {
+      "samples": 1,
+      "failed": 1,
+      "error_rate": 1.0,
+      "avg_ms": 5013,
+      "p95_ms": 5013,
+      "max_ms": 5013
+    },
+    "POST Add To Cart": {
+      "samples": 1,
+      "failed": 1,
+      "error_rate": 1.0,
+      "avg_ms": 5007,
+      "p95_ms": 5007,
+      "max_ms": 5007
+    },
+    "POST Checkout CNY Discount": {
+      "samples": 1,
+      "failed": 1,
+      "error_rate": 1.0,
+      "avg_ms": 5007,
+      "p95_ms": 5007,
+      "max_ms": 5007
+    },
+    "POST Set Currency CNY": {
+      "samples": 1,
+      "failed": 1,
+      "error_rate": 1.0,
+      "avg_ms": 5012,
+      "p95_ms": 5012,
+      "max_ms": 5012
+    }
+  }
+}

@@ -5,7 +5,7 @@
 成员 C 负责从用户侧和系统韧性侧验证 Online Boutique 改造后的关键链路：
 
 1. 使用 Selenium 模拟真实用户完成浏览、设置币种、加购、结账流程。
-2. 验证成员 B 新增的 `discountservice` 在 CNY 结算下按 618 满减规则生效。
+2. 验证成员 B 新增的 `discountservice` 在 UI 支持币种 `EUR/USD/JPY/GBP/TRY/CAD` 下按 618 满减规则生效。
 3. 使用 JMeter 对首页、商品模块、购物车和结账模块发起并发压测。
 4. 在 JMeter 持续压测期间使用 ChaosMesh 注入故障，记录 TPS、Error Rate、p95 延迟和恢复时间。
 
@@ -22,13 +22,13 @@
 
 | 交付物 | 路径 | 说明 |
 |---|---|---|
-| Selenium 功能测试 | `tests/member_c/selenium/checkout_discount_test.py` | 自动设置 CNY/USD、加购、结账并断言折扣后实付金额 |
-| Selenium 依赖 | `tests/member_c/selenium/requirements.txt` | `pytest`、`selenium` |
-| JMeter 压测计划 | `tests/member_c/jmeter/online_boutique_checkout_pressure.jmx` | 并发执行首页、设置 CNY、商品详情、加购、购物车、结账 |
-| ChaosMesh 场景 | `tests/member_c/chaosmesh/*.yaml` | CPU、网络延迟、网络丢包、Pod failure、Pod kill |
-| 混沌压测编排脚本 | `tests/member_c/scripts/run_chaos_load_test.sh` | JMeter 运行中自动注入/清理 ChaosMesh 实验 |
-| JTL 分析脚本 | `tests/member_c/scripts/analyze_jmeter_results.py` | 输出 SLA 摘要、时间序列 CSV、SVG 曲线 |
-| 运行说明 | `tests/member_c/README.md` | 给组员复现实验使用 |
+| Selenium 功能测试 | `tests/functional/checkout_discount_test.py` | 自动设置 UI 币种、加购、结账并断言折扣后实付金额 |
+| Selenium 依赖 | `tests/functional/requirements.txt` | `pytest`、`selenium` |
+| JMeter 压测计划 | `tests/performance/online_boutique_checkout_pressure.jmx` | 并发执行首页、设置 USD/前端支持币种、商品详情、加购、购物车、结账 |
+| ChaosMesh 场景 | `tests/chaosmesh/*.yaml` | CPU、网络延迟、网络丢包、Pod failure、Pod kill |
+| 混沌压测编排脚本 | `tests/performance/scripts/run_chaos_load_test.sh` | JMeter 运行中自动注入/清理 ChaosMesh 实验 |
+| JTL 分析脚本 | `tests/performance/scripts/analyze_jmeter_results.py` | 输出 SLA 摘要、时间序列 CSV、SVG 曲线 |
+| 运行说明 | `tests/README.md` | 给组员复现实验使用 |
 
 ## 4. Selenium 功能测试设计
 
@@ -37,38 +37,38 @@
 Selenium 不直接调用后端接口，而是从浏览器侧执行完整用户流程：
 
 1. 打开首页。
-2. 通过页面右上角币种下拉框设置 `CNY` 或 `USD`。
+2. 通过页面右上角币种下拉框设置 `EUR/USD/JPY/GBP/TRY/CAD`。
 3. 打开商品详情页，选择数量并加入购物车。
 4. 读取购物车页 `Total`，作为结账前原始金额。
 5. 提交页面预填好的收货地址和信用卡信息。
 6. 在订单完成页读取 `Total Paid`。
 7. 根据仓库实际折扣规则计算期望金额并断言：
-   - CNY：`>=700` 减 `200`，`>=400` 减 `100`，`>=200` 减 `50`
-   - 非 CNY：不打折，订单金额应等于购物车金额
+   - 支持币种：`>=700` 减 `200`，`>=400` 减 `100`，`>=200` 减 `50`
+   - 非支持币种：不打折，订单金额应等于购物车金额
 
 ### 4.2 断言规则
 
 | 用例编号 | 币种 | 默认商品 | 关键断言 |
 |---|---|---|---|
-| C-SEL-001 | CNY | `1YMWWN1N4O` Watch | `Total Paid = Cart Total - expected_discount` |
-| C-SEL-002 | USD | `1YMWWN1N4O` Watch | `Total Paid = Cart Total`，验证非 CNY 不触发满减 |
-| C-SEL-003 | CNY + telemetry | 同上 | 若提供 `TELEMETRY_METRICS_URL`，检查 `boutique_discount_hits_total{rule="FULL_700_MINUS_200"}` |
+| C-SEL-001 | USD | `1YMWWN1N4O` Watch，数量 2 | `Total Paid = Cart Total - expected_discount` |
+| C-SEL-002 | EUR/JPY/GBP/TRY/CAD | 同上 | 对 UI 支持币种执行同一规则断言 |
+| C-SEL-003 | telemetry | 同上 | 若提供 `TELEMETRY_METRICS_URL`，检查 `boutique_discount_hits_total{rule=...}` |
 
 ### 4.3 运行方式
 
 ```bash
-python3 -m venv .venv-member-c
-. .venv-member-c/bin/activate
-pip install -r tests/member_c/selenium/requirements.txt
+python3 -m venv .venv-testing
+. .venv-testing/bin/activate
+pip install -r tests/functional/requirements.txt
 
 FRONTEND_URL=http://<A_IP>:<FRONTEND_PORT> \
-pytest -q tests/member_c/selenium/checkout_discount_test.py
+pytest -q tests/functional/checkout_discount_test.py
 ```
 
 Selenium 每次运行会生成 JSONL 交互指标：
 
 ```text
-results/member_c/selenium/checkout_discount_results.jsonl
+results/testing/functional/checkout_discount_results.jsonl
 ```
 
 字段包括 `set_currency_ms`、`add_to_cart_ms`、`checkout_ms`、`cart_total`、`expected_discount`、`actual_total_paid`，可作为报告截图或附录数据。
@@ -80,7 +80,7 @@ results/member_c/selenium/checkout_discount_results.jsonl
 JMeter 线程组模拟一个完整用户会话：
 
 1. `GET /`
-2. `POST /setCurrency`，设置 `currency_code=CNY`
+2. `POST /setCurrency`，设置 `currency_code=USD` 或其他 UI 支持币种
 3. `GET /product/${PRODUCT_ID}`
 4. `POST /cart`
 5. `GET /cart`
@@ -92,11 +92,11 @@ JMeter 线程组模拟一个完整用户会话：
 
 | 参数 | 建议值 | 说明 |
 |---|---:|---|
-| `THREADS` | 50 | 普通笔记本和 Minikube 可承受的中等并发 |
-| `RAMP_SECONDS` | 60 | 避免瞬时打满导致不真实尖峰 |
-| `DURATION_SECONDS` | 600 | 2 分钟预热 + 5 分钟故障 + 3 分钟恢复观察 |
-| `PRODUCT_ID` | `1YMWWN1N4O` | Watch，CNY 下可稳定命中 700 档 |
-| `PRODUCT_QUANTITY` | 1 | 保持用户行为简单稳定 |
+| `THREADS` | 10 | 当前 Tailscale/Minikube 联调环境的稳定正式采集并发 |
+| `RAMP_SECONDS` | 120 | 缓慢升压，避免基线阶段被瞬时打满 |
+| `DURATION_SECONDS` | 1800 | 3-5 分钟基线 + 故障段 + 3-5 分钟恢复观察 |
+| `PRODUCT_ID` | `1YMWWN1N4O` | Watch，配合数量 2 可覆盖 USD 200 档 |
+| `PRODUCT_QUANTITY` | 2 | 保证 USD 默认商品链路能够触发 discountservice |
 
 ### 5.3 指标定义
 
@@ -130,18 +130,20 @@ JMeter 线程组模拟一个完整用户会话：
 ```bash
 FRONTEND_HOST=<A_IP> \
 FRONTEND_PORT=80 \
-THREADS=50 \
-RAMP_SECONDS=60 \
-DURATION_SECONDS=600 \
+THREADS=10 \
+RAMP_SECONDS=120 \
+DURATION_SECONDS=1800 \
 CHAOS_DELAY_SECONDS=120 \
-CHAOS_FILE=tests/member_c/chaosmesh/network-delay-checkout-to-discount.yaml \
-bash tests/member_c/scripts/run_chaos_load_test.sh
+PRODUCT_QUANTITY=2 \
+CURRENCY_CODE=USD \
+CHAOS_FILE=tests/chaosmesh/network-delay-checkout-to-discount.yaml \
+bash tests/performance/scripts/run_chaos_load_test.sh
 ```
 
 输出目录：
 
 ```text
-results/member_c/jmeter/<run-name>-analysis/
+results/testing/jmeter/<run-name>-analysis/
 ```
 
 关键产物：
@@ -154,8 +156,8 @@ results/member_c/jmeter/<run-name>-analysis/
 
 | 验收项 | 通过标准 |
 |---|---|
-| Selenium 功能测试 | CNY 折扣金额正确；USD 不打折；页面出现订单完成提示 |
-| JMeter 基线 | `POST Checkout CNY Discount` 成功率 >= 99%，p95 建议 <= 1500ms |
+| Selenium 功能测试 | UI 支持币种折扣金额正确；页面出现订单完成提示 |
+| JMeter 基线 | `POST Checkout` 成功率 >= 99%，p95 建议 <= 1500ms |
 | checkout -> discount 延迟 | 故障段 p95 上升可观测，故障结束后 TPS 和 p95 回归基线附近 |
 | telemetry 丢包 | 结账成功率接近基线，证明遥测弱依赖不阻断交易 |
 | Pod kill/failure | 出现短暂错误峰值并恢复，能为成员 F 的 Agent 自愈演示提供告警素材 |

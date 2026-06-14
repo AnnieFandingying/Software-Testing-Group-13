@@ -1,0 +1,32 @@
+bocpd:
+  hazard_rate: 100
+  N0: null
+  sigma_hat: 1.0
+
+scorer:
+  use_median_iqr: true
+  window_before: 60
+  window_after: 60
+  alpha: 0.05
+
+data:
+  systems:
+    - name: "online-boutique"
+      services: 12
+      metrics: 49
+      targets: ["adservice", "cartservice", "checkoutservice", "currencyservice", "productcatalogue"]
+    - name: "sock-shop"
+      services: 11
+      metrics: 46
+      targets: ["carts", "catalogue", "orders", "payment", "user"]
+    - name: "train-ticket"
+      services: 64
+      metrics: 212
+      targets: ["ts-auth-service", "ts-order-service", "ts-route-service", "ts-train-service", "ts-travel-service"]
+
+  fault_types: ["cpu_hog", "memory_leak", "network_delay", "packet_loss"]
+  repeats_per_case: 5
+
+evaluation:
+  anomaly_detection_metrics: ["precision", "recall", "f1"]
+  rca_top_k: [1, 2, 3]

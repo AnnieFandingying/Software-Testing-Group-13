@@ -1,0 +1,100 @@
+[
+  {
+    "request_url": "http://100.110.3.67:18081/",
+    "method": "GET",
+    "label": "GET Home",
+    "final_url": "http://100.110.3.67:18081/",
+    "response_code": "ERR",
+    "response_message": "TimeoutError: timed out",
+    "success": false,
+    "failure_message": "TimeoutError: timed out",
+    "elapsed_ms": 25005,
+    "body_bytes": 0,
+    "file": "01_get_home.html"
+  },
+  {
+    "request_url": "http://100.110.3.67:18081/setCurrency",
+    "method": "POST",
+    "label": "POST Set Currency CNY",
+    "headers": {
+      "Connection": "close",
+      "Content-Length": "0"
+    },
+    "final_url": "http://100.110.3.67:18081/setCurrency",
+    "response_code": "502",
+    "response_message": "Bad Gateway",
+    "success": false,
+    "failure_message": "HTTPError: Bad Gateway",
+    "elapsed_ms": 5012,
+    "body_bytes": 0,
+    "file": "02_post_set_currency_cny.html"
+  },
+  {
+    "request_url": "http://100.110.3.67:18081/product/1YMWWN1N4O",
+    "method": "GET",
+    "label": "GET Product Detail",
+    "headers": {
+      "Connection": "close",
+      "Content-Length": "0"
+    },
+    "final_url": "http://100.110.3.67:18081/product/1YMWWN1N4O",
+    "response_code": "502",
+    "response_message": "Bad Gateway",
+    "success": false,
+    "failure_message": "HTTPError: Bad Gateway",
+    "elapsed_ms": 5013,
+    "body_bytes": 0,
+    "file": "03_get_product_detail.html"
+  },
+  {
+    "request_url": "http://100.110.3.67:18081/cart",
+    "method": "POST",
+    "label": "POST Add To Cart",
+    "headers": {
+      "Connection": "close",
+      "Content-Length": "0"
+    },
+    "final_url": "http://100.110.3.67:18081/cart",
+    "response_code": "502",
+    "response_message": "Bad Gateway",
+    "success": false,
+    "failure_message": "HTTPError: Bad Gateway",
+    "elapsed_ms": 5007,
+    "body_bytes": 0,
+    "file": "04_post_add_to_cart.html"
+  },
+  {
+    "request_url": "http://100.110.3.67:18081/cart",
+    "method": "GET",
+    "label": "GET Cart",
+    "headers": {
+      "Connection": "close",
+      "Content-Length": "0"
+    },
+    "final_url": "http://100.110.3.67:18081/cart",
+    "response_code": "502",
+    "response_message": "Bad Gateway",
+    "success": false,
+    "failure_message": "HTTPError: Bad Gateway",
+    "elapsed_ms": 5009,
+    "body_bytes": 0,
+    "file": "05_get_cart.html"
+  },
+  {
+    "request_url": "http://100.110.3.67:18081/cart/checkout",
+    "method": "POST",
+    "label": "POST Checkout CNY Discount",
+    "headers": {
+      "Connection": "close",
+      "Content-Length": "0"
+    },
+    "final_url": "http://100.110.3.67:18081/cart/checkout",
+    "response_code": "502",
+    "response_message": "Bad Gateway",
+    "success": false,
+    "failure_message": "HTTPError: Bad Gateway",
+    "elapsed_ms": 5007,
+    "body_bytes": 0,
+    "file": "06_post_checkout_cny_discount.html"
+  }
+]
