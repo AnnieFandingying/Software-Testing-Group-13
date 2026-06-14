@@ -1,0 +1,35 @@
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# 虚拟环境
+.venv-tracedae/
+.venv-baro/
+venv/
+
+# TraceDAE 训练产物
+tracedae/data/processed/
+tracedae/data/models/
+*.pth
+
+# BARO 图表（每次运行重新生成）
+baro/results/*.png
+
+# 大模型权重
+*.bin
+*.safetensors
+*.ckpt
+
+# 真实数据（不提交到GitHub）
+tracedae/data/raw/jaeger/
+!tracedae/data/raw/jaeger/.gitkeep
+baro/data/raw/
+!baro/data/raw/.gitkeep
+baro/data/labels/
+!baro/data/labels/.gitkeep
+
+# IDE与缓存
+.vscode/
+.idea/
+.matplotlib_cache/
+.claude/
