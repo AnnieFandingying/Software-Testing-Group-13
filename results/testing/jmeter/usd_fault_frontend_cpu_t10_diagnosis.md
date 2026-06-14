@@ -81,8 +81,8 @@ Run one-thread USD smoke before asking A to inject chaos:
 ```bash
 jmeter -n \
   -t tests/performance/online_boutique_checkout_pressure.jmx \
-  -l results/testing/jmeter/usd_discount_smoke_t1.jtl \
-  -JRESULTS_FILE=results/testing/jmeter/usd_discount_smoke_t1.jtl \
+  -l results/testing/jmeter/usd_discount_smoke_t1/run.jtl \
+  -JRESULTS_FILE=results/testing/jmeter/usd_discount_smoke_t1/run.jtl \
   -JFRONTEND_SCHEME=http \
   -JFRONTEND_HOST=100.110.3.67 \
   -JFRONTEND_PORT=18081 \
@@ -100,8 +100,8 @@ Analyze:
 
 ```bash
 python3 tests/performance/scripts/analyze_jmeter_results.py \
-  --jtl results/testing/jmeter/usd_discount_smoke_t1.jtl \
-  --out-dir results/testing/jmeter/usd_discount_smoke_t1-analysis \
+  --jtl results/testing/jmeter/usd_discount_smoke_t1/run.jtl \
+  --out-dir results/testing/jmeter/usd_discount_smoke_t1/analysis \
   --label-filter "E2E Browse And Checkout"
 ```
 

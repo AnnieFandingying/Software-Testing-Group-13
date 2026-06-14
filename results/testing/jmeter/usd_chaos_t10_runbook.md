@@ -25,8 +25,10 @@ default watch product and exercises the promotion API.
 
 - Use the same JMX file for every run:
   `tests/performance/online_boutique_checkout_pressure.jmx`
-- Use a separate `.jtl` file per scenario.
-- Do not mix multiple chaos scenarios into the same `.jtl`.
+- Use a separate result folder per scenario.
+- Each scenario folder should contain `run.jtl`, `analysis/`, `screenshots/`,
+  `timeline.md`, and optional raw logs.
+- Do not mix multiple chaos scenarios into the same folder or `.jtl`.
 - Start JMeter first, keep 3-5 minutes of no-chaos baseline, then ask Member A
   to inject the fault.
 - Member A must record UTC timestamps immediately before injection and cleanup.
@@ -39,7 +41,21 @@ Test runner:
 
 ```bash
 cd "/Users/imnort/Library/Mobile Documents/com~apple~CloudDocs/大学/大三下/软件测试/Software-Testing-Group-13"
-mkdir -p results/testing/jmeter
+mkdir -p \
+  results/testing/jmeter/usd_discount_smoke_t1/analysis \
+  results/testing/jmeter/usd_discount_smoke_t1/screenshots \
+  results/testing/jmeter/usd_baseline_t10/analysis \
+  results/testing/jmeter/usd_baseline_t10/screenshots \
+  results/testing/jmeter/usd_fault_frontend_cpu_t10/analysis \
+  results/testing/jmeter/usd_fault_frontend_cpu_t10/screenshots \
+  results/testing/jmeter/usd_fault_checkout_pod_kill_t10/analysis \
+  results/testing/jmeter/usd_fault_checkout_pod_kill_t10/screenshots \
+  results/testing/jmeter/usd_fault_productcatalog_pod_failure_t10/analysis \
+  results/testing/jmeter/usd_fault_productcatalog_pod_failure_t10/screenshots \
+  results/testing/jmeter/usd_fault_telemetry_loss_t10/analysis \
+  results/testing/jmeter/usd_fault_telemetry_loss_t10/screenshots \
+  results/testing/jmeter/usd_fault_checkout_discount_delay_t10/analysis \
+  results/testing/jmeter/usd_fault_checkout_discount_delay_t10/screenshots
 ```
 
 Member A:
@@ -57,8 +73,8 @@ Test runner runs:
 ```bash
 jmeter -n \
   -t tests/performance/online_boutique_checkout_pressure.jmx \
-  -l results/testing/jmeter/usd_baseline_t10.jtl \
-  -JRESULTS_FILE=results/testing/jmeter/usd_baseline_t10.jtl \
+  -l results/testing/jmeter/usd_baseline_t10/run.jtl \
+  -JRESULTS_FILE=results/testing/jmeter/usd_baseline_t10/run.jtl \
   -JFRONTEND_SCHEME=http \
   -JFRONTEND_HOST=100.110.3.67 \
   -JFRONTEND_PORT=18081 \
@@ -76,8 +92,8 @@ Test runner analyzes:
 
 ```bash
 python3 tests/performance/scripts/analyze_jmeter_results.py \
-  --jtl results/testing/jmeter/usd_baseline_t10.jtl \
-  --out-dir results/testing/jmeter/usd_baseline_t10-analysis \
+  --jtl results/testing/jmeter/usd_baseline_t10/run.jtl \
+  --out-dir results/testing/jmeter/usd_baseline_t10/analysis \
   --label-filter "E2E Browse And Checkout"
 ```
 
@@ -88,8 +104,8 @@ Test runner starts JMeter:
 ```bash
 jmeter -n \
   -t tests/performance/online_boutique_checkout_pressure.jmx \
-  -l results/testing/jmeter/usd_fault_frontend_cpu_t10.jtl \
-  -JRESULTS_FILE=results/testing/jmeter/usd_fault_frontend_cpu_t10.jtl \
+  -l results/testing/jmeter/usd_fault_frontend_cpu_t10/run.jtl \
+  -JRESULTS_FILE=results/testing/jmeter/usd_fault_frontend_cpu_t10/run.jtl \
   -JFRONTEND_SCHEME=http \
   -JFRONTEND_HOST=100.110.3.67 \
   -JFRONTEND_PORT=18081 \
@@ -124,8 +140,8 @@ Test runner analyzes:
 
 ```bash
 python3 tests/performance/scripts/analyze_jmeter_results.py \
-  --jtl results/testing/jmeter/usd_fault_frontend_cpu_t10.jtl \
-  --out-dir results/testing/jmeter/usd_fault_frontend_cpu_t10-analysis \
+  --jtl results/testing/jmeter/usd_fault_frontend_cpu_t10/run.jtl \
+  --out-dir results/testing/jmeter/usd_fault_frontend_cpu_t10/analysis \
   --label-filter "E2E Browse And Checkout"
 ```
 
@@ -136,8 +152,8 @@ Test runner starts JMeter:
 ```bash
 jmeter -n \
   -t tests/performance/online_boutique_checkout_pressure.jmx \
-  -l results/testing/jmeter/usd_fault_checkout_pod_kill_t10.jtl \
-  -JRESULTS_FILE=results/testing/jmeter/usd_fault_checkout_pod_kill_t10.jtl \
+  -l results/testing/jmeter/usd_fault_checkout_pod_kill_t10/run.jtl \
+  -JRESULTS_FILE=results/testing/jmeter/usd_fault_checkout_pod_kill_t10/run.jtl \
   -JFRONTEND_SCHEME=http \
   -JFRONTEND_HOST=100.110.3.67 \
   -JFRONTEND_PORT=18081 \
@@ -172,8 +188,8 @@ Test runner analyzes:
 
 ```bash
 python3 tests/performance/scripts/analyze_jmeter_results.py \
-  --jtl results/testing/jmeter/usd_fault_checkout_pod_kill_t10.jtl \
-  --out-dir results/testing/jmeter/usd_fault_checkout_pod_kill_t10-analysis \
+  --jtl results/testing/jmeter/usd_fault_checkout_pod_kill_t10/run.jtl \
+  --out-dir results/testing/jmeter/usd_fault_checkout_pod_kill_t10/analysis \
   --label-filter "E2E Browse And Checkout"
 ```
 
@@ -184,8 +200,8 @@ Test runner starts JMeter:
 ```bash
 jmeter -n \
   -t tests/performance/online_boutique_checkout_pressure.jmx \
-  -l results/testing/jmeter/usd_fault_productcatalog_pod_failure_t10.jtl \
-  -JRESULTS_FILE=results/testing/jmeter/usd_fault_productcatalog_pod_failure_t10.jtl \
+  -l results/testing/jmeter/usd_fault_productcatalog_pod_failure_t10/run.jtl \
+  -JRESULTS_FILE=results/testing/jmeter/usd_fault_productcatalog_pod_failure_t10/run.jtl \
   -JFRONTEND_SCHEME=http \
   -JFRONTEND_HOST=100.110.3.67 \
   -JFRONTEND_PORT=18081 \
@@ -221,8 +237,8 @@ Test runner analyzes:
 
 ```bash
 python3 tests/performance/scripts/analyze_jmeter_results.py \
-  --jtl results/testing/jmeter/usd_fault_productcatalog_pod_failure_t10.jtl \
-  --out-dir results/testing/jmeter/usd_fault_productcatalog_pod_failure_t10-analysis \
+  --jtl results/testing/jmeter/usd_fault_productcatalog_pod_failure_t10/run.jtl \
+  --out-dir results/testing/jmeter/usd_fault_productcatalog_pod_failure_t10/analysis \
   --label-filter "E2E Browse And Checkout"
 ```
 
@@ -233,8 +249,8 @@ Test runner starts JMeter:
 ```bash
 jmeter -n \
   -t tests/performance/online_boutique_checkout_pressure.jmx \
-  -l results/testing/jmeter/usd_fault_telemetry_loss_t10.jtl \
-  -JRESULTS_FILE=results/testing/jmeter/usd_fault_telemetry_loss_t10.jtl \
+  -l results/testing/jmeter/usd_fault_telemetry_loss_t10/run.jtl \
+  -JRESULTS_FILE=results/testing/jmeter/usd_fault_telemetry_loss_t10/run.jtl \
   -JFRONTEND_SCHEME=http \
   -JFRONTEND_HOST=100.110.3.67 \
   -JFRONTEND_PORT=18081 \
@@ -269,8 +285,8 @@ Test runner analyzes:
 
 ```bash
 python3 tests/performance/scripts/analyze_jmeter_results.py \
-  --jtl results/testing/jmeter/usd_fault_telemetry_loss_t10.jtl \
-  --out-dir results/testing/jmeter/usd_fault_telemetry_loss_t10-analysis \
+  --jtl results/testing/jmeter/usd_fault_telemetry_loss_t10/run.jtl \
+  --out-dir results/testing/jmeter/usd_fault_telemetry_loss_t10/analysis \
   --label-filter "E2E Browse And Checkout"
 ```
 
@@ -284,8 +300,8 @@ Test runner starts JMeter:
 ```bash
 jmeter -n \
   -t tests/performance/online_boutique_checkout_pressure.jmx \
-  -l results/testing/jmeter/usd_fault_checkout_discount_delay_t10.jtl \
-  -JRESULTS_FILE=results/testing/jmeter/usd_fault_checkout_discount_delay_t10.jtl \
+  -l results/testing/jmeter/usd_fault_checkout_discount_delay_t10/run.jtl \
+  -JRESULTS_FILE=results/testing/jmeter/usd_fault_checkout_discount_delay_t10/run.jtl \
   -JFRONTEND_SCHEME=http \
   -JFRONTEND_HOST=100.110.3.67 \
   -JFRONTEND_PORT=18081 \
@@ -320,8 +336,8 @@ Test runner analyzes:
 
 ```bash
 python3 tests/performance/scripts/analyze_jmeter_results.py \
-  --jtl results/testing/jmeter/usd_fault_checkout_discount_delay_t10.jtl \
-  --out-dir results/testing/jmeter/usd_fault_checkout_discount_delay_t10-analysis \
+  --jtl results/testing/jmeter/usd_fault_checkout_discount_delay_t10/run.jtl \
+  --out-dir results/testing/jmeter/usd_fault_checkout_discount_delay_t10/analysis \
   --label-filter "E2E Browse And Checkout"
 ```
 
@@ -329,11 +345,11 @@ python3 tests/performance/scripts/analyze_jmeter_results.py \
 
 Record one row per scenario:
 
-| Scenario | JMeter file | JMeter start CST | Fault inject UTC | Fault cleanup UTC | JMeter stop CST | Notes |
+| Scenario | Result folder | JMeter start CST | Fault inject UTC | Fault cleanup UTC | JMeter stop CST | Notes |
 |---|---|---|---|---|---|---|
-| baseline | `usd_baseline_t10.jtl` |  | N/A | N/A |  | No chaos |
-| frontend CPU | `usd_fault_frontend_cpu_t10.jtl` |  |  |  |  |  |
-| checkout pod kill | `usd_fault_checkout_pod_kill_t10.jtl` |  |  |  |  |  |
-| productcatalog pod failure | `usd_fault_productcatalog_pod_failure_t10.jtl` |  |  |  |  |  |
-| telemetry loss | `usd_fault_telemetry_loss_t10.jtl` |  |  |  |  |  |
-| checkout-discount delay | `usd_fault_checkout_discount_delay_t10.jtl` |  |  |  |  | Requires updated images |
+| baseline | `results/testing/jmeter/usd_baseline_t10/` |  | N/A | N/A |  | No chaos |
+| frontend CPU | `results/testing/jmeter/usd_fault_frontend_cpu_t10/` |  |  |  |  |  |
+| checkout pod kill | `results/testing/jmeter/usd_fault_checkout_pod_kill_t10/` |  |  |  |  |  |
+| productcatalog pod failure | `results/testing/jmeter/usd_fault_productcatalog_pod_failure_t10/` |  |  |  |  |  |
+| telemetry loss | `results/testing/jmeter/usd_fault_telemetry_loss_t10/` |  |  |  |  |  |
+| checkout-discount delay | `results/testing/jmeter/usd_fault_checkout_discount_delay_t10/` |  |  |  |  | Requires updated images |

@@ -60,11 +60,11 @@ UI currencies. Quantity is set to 2 so USD can cross the `200` threshold and
 exercise `discountservice`.
 
 ```bash
-mkdir -p results/testing/jmeter
+mkdir -p results/testing/jmeter/usd_discount_smoke_t1/analysis
 jmeter -n \
   -t tests/performance/online_boutique_checkout_pressure.jmx \
-  -l results/testing/jmeter/baseline_smoke.jtl \
-  -JRESULTS_FILE=results/testing/jmeter/baseline_smoke.jtl \
+  -l results/testing/jmeter/usd_discount_smoke_t1/run.jtl \
+  -JRESULTS_FILE=results/testing/jmeter/usd_discount_smoke_t1/run.jtl \
   -JFRONTEND_SCHEME=http \
   -JFRONTEND_HOST=100.110.3.67 \
   -JFRONTEND_PORT=18081 \
@@ -82,11 +82,11 @@ Run a no-chaos baseline. The command below targets the current Tailscale
 frontend; replace the host/port if Member A uses a local port-forward instead:
 
 ```bash
-mkdir -p results/testing/jmeter
+mkdir -p results/testing/jmeter/usd_baseline_t10/analysis
 jmeter -n \
   -t tests/performance/online_boutique_checkout_pressure.jmx \
-  -l results/testing/jmeter/baseline.jtl \
-  -JRESULTS_FILE=results/testing/jmeter/baseline.jtl \
+  -l results/testing/jmeter/usd_baseline_t10/run.jtl \
+  -JRESULTS_FILE=results/testing/jmeter/usd_baseline_t10/run.jtl \
   -JFRONTEND_SCHEME=http \
   -JFRONTEND_HOST=100.110.3.67 \
   -JFRONTEND_PORT=18081 \
@@ -104,8 +104,8 @@ Analyze the JTL:
 
 ```bash
 python3 tests/performance/scripts/analyze_jmeter_results.py \
-  --jtl results/testing/jmeter/baseline.jtl \
-  --out-dir results/testing/jmeter/baseline-analysis \
+  --jtl results/testing/jmeter/usd_baseline_t10/run.jtl \
+  --out-dir results/testing/jmeter/usd_baseline_t10/analysis \
   --label-filter "E2E Browse And Checkout"
 ```
 

@@ -71,7 +71,9 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def parse_bool(value: str) -> bool:
+def parse_bool(value: str | None) -> bool:
+    if value is None:
+        return False
     return value.strip().lower() in {"true", "1", "yes"}
 
 
@@ -93,7 +95,7 @@ def read_samples(path: Path, label_filter: str) -> list[Sample]:
                         success=parse_bool(row.get("success", "false")),
                     )
                 )
-            except (KeyError, ValueError):
+            except (AttributeError, KeyError, TypeError, ValueError):
                 continue
     if not samples:
         raise SystemExit(f"no samples found in {path} for label_filter={label_filter!r}")
