@@ -361,7 +361,7 @@ class AIOpsAgent:
         except Exception as e:
             return f"快速咨询失败: {e}"
 
-    def bulk_diagnose(self, alerts: list[dict]) -> str:
+    def bulk_diagnose(self, alerts: list[dict], fingerprint: str = None) -> str:
         """
         告警聚合推理：同时分析多条告警，识别共同根因。
 
@@ -370,6 +370,7 @@ class AIOpsAgent:
 
         Args:
             alerts: 告警列表，每个元素含 {alertname, severity, service, summary}
+            fingerprint: 聚合告警指纹（用于冷却期去重）
 
         Returns:
             聚合诊断报告
@@ -382,7 +383,8 @@ class AIOpsAgent:
             svc = a.get("service", "unknown")
             return self.diagnose(
                 f"[{a.get('severity', 'warning')}] {a.get('alertname', 'Alert')}: "
-                f"{a.get('summary', '')} (服务: {svc})"
+                f"{a.get('summary', '')} (服务: {svc})",
+                alert_fingerprint=fingerprint,
             )
 
         # 构建聚合告警描述
@@ -403,7 +405,7 @@ class AIOpsAgent:
         alert_lines.append("4. 是否需要重启操作的组合，还是只需修复根源即可？")
 
         aggregated_context = "\n".join(alert_lines)
-        return self.diagnose(aggregated_context)
+        return self.diagnose(aggregated_context, alert_fingerprint=fingerprint)
 
 
 # ============================================================================

@@ -194,11 +194,20 @@ async def handle_alert(request: Request):
     """
     global _diagnosis_count
 
-    # 解析请求体
+    # 解析请求体（兼容 UTF-8 和 GBK 编码）
     try:
         body = await request.json()
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="无效的 JSON 格式")
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        # 降级：手动读取原始字节并尝试 GBK → UTF-8
+        try:
+            raw = await request.body()
+            try:
+                text = raw.decode("utf-8")
+            except UnicodeDecodeError:
+                text = raw.decode("gbk", errors="replace")
+            body = json.loads(text)
+        except Exception:
+            raise HTTPException(status_code=400, detail="无效的 JSON 格式（请使用 UTF-8 编码）")
 
     logger.info("收到 Alertmanager Webhook: status=%s alerts=%d", body.get("status"), len(body.get("alerts", [])))
 
@@ -232,11 +241,17 @@ async def handle_alert(request: Request):
             }
             for a in firing_alerts[:5]
         ]
-        report = agent.bulk_diagnose(alert_dicts)
+        # 生成聚合指纹（合并所有告警名 + 服务名），实现冷却期去重
+        agg_fp_parts = sorted(set(
+            a.get("alertname", "") + a.get("service", "") for a in alert_dicts
+        ))
+        agg_fingerprint = hashlib.md5("|".join(agg_fp_parts).encode()).hexdigest()[:12]
+
+        report = agent.bulk_diagnose(alert_dicts, agg_fingerprint)
         elapsed_ms = (time.perf_counter() - start) * 1000
         _diagnosis_count += 1
         reports.append({
-            "fingerprint": "aggregated",
+            "fingerprint": agg_fingerprint,
             "alertname": f"聚合诊断 ({len(alert_dicts)}条告警)",
             "severity": "critical",
             "report": report,
