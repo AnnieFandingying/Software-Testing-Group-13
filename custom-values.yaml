@@ -1,0 +1,32 @@
+# 全局配置：不设置 images.repository，避免所有服务都走阿里云
+images:
+  tag: 618-v1
+  pullPolicy: IfNotPresent
+
+# 只覆盖四个核心服务的镜像
+checkoutservice:
+  image:
+    repository: crpi-3qhk4rm49t1wiwvp.cn-hangzhou.personal.cr.aliyuncs.com/vowit/checkoutservice
+    tag: 618-v1
+    pullPolicy: IfNotPresent
+  env:
+    DISCOUNT_SERVICE_ADDR: "discountservice:50051"
+    TELEMETRY_SERVICE_URL: "http://telemetryservice:8080/v1/metrics"
+
+frontend:
+  image:
+    repository: crpi-3qhk4rm49t1wiwvp.cn-hangzhou.personal.cr.aliyuncs.com/vowit/frontend
+    tag: 618-v1
+    pullPolicy: IfNotPresent
+
+discountservice:
+  image:
+    repository: crpi-3qhk4rm49t1wiwvp.cn-hangzhou.personal.cr.aliyuncs.com/vowit/discountservice
+    tag: 618-v1
+    pullPolicy: IfNotPresent
+
+telemetryservice:
+  image:
+    repository: crpi-3qhk4rm49t1wiwvp.cn-hangzhou.personal.cr.aliyuncs.com/vowit/telemetryservice
+    tag: 618-v1
+    pullPolicy: IfNotPresent

@@ -28,7 +28,8 @@ spec:
                 - ALL
             privileged: false
             readOnlyRootFilesystem: true
-          image: discountservice
+          image: discountservice:fixed
+          imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 50051
           readinessProbe:
@@ -69,3 +70,4 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: discountservice
+

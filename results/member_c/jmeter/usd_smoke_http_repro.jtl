@@ -1,0 +1,8 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1781380868972,8011,E2E Browse And Checkout,200,OK,Checkout Concurrent Users 1-1,text,true,,68711,341,1,1,http://100.110.3.67:18081/cart/checkout,8011,0,0
+1781380868972,1090,GET Home,200,OK,Checkout Concurrent Users 1-1,text,true,,10499,0,1,1,http://100.110.3.67:18081/,1090,0,0
+1781380870062,1636,POST Set Currency,200,OK,Checkout Concurrent Users 1-1,text,true,,10499,17,1,1,http://100.110.3.67:18081/,1636,0,0
+1781380871739,901,GET Product Detail,200,OK,Checkout Concurrent Users 1-1,text,true,,7958,0,1,1,http://100.110.3.67:18081/product/1YMWWN1N4O,901,0,0
+1781380872641,1831,POST Add To Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16463,32,1,1,http://100.110.3.67:18081/cart,1831,0,0
+1781380874472,1047,GET Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16463,0,1,1,http://100.110.3.67:18081/cart,1047,0,0
+1781380876151,826,POST Checkout,200,OK,Checkout Concurrent Users 1-1,text,true,,6829,292,1,1,http://100.110.3.67:18081/cart/checkout,826,0,0

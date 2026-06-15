@@ -38,6 +38,9 @@ class AgentConfig:
     webhook_host: str = "0.0.0.0"
     webhook_port: int = 5000
 
+    # --- 群聊通知（飞书/钉钉）---
+    notify_webhook_url: str = ""  # 群机器人 Webhook URL，留空则不启用
+
     # --- Agent 行为配置 ---
     max_tool_calls_per_diagnosis: int = 5  # 单次诊断最大工具调用轮数
     cpu_alert_threshold: float = 0.5  # CPU 告警阈值
@@ -84,6 +87,7 @@ class AgentConfig:
             "VEADK_RECOVERY_AUTH_TOKEN": "recovery_auth_token",
             "VEADK_K8S_NAMESPACE": "k8s_namespace",
             "VEADK_WEBHOOK_PORT": ("webhook_port", int),
+            "VEADK_NOTIFY_WEBHOOK_URL": "notify_webhook_url",
             "VEADK_MAX_TOOL_CALLS": ("max_tool_calls_per_diagnosis", int),
             "VEADK_CPU_THRESHOLD": ("cpu_alert_threshold", float),
             "VEADK_PATROL_INTERVAL": ("patrol_interval_seconds", int),

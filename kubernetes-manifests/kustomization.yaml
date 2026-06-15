@@ -23,6 +23,7 @@ resources:
  - emailservice.yaml
  - frontend.yaml
  - telemetryservice.yaml
+ - recoverygateway.yaml
 # - loadgenerator.yaml # During development, the loadgenerator module inside skaffold.yaml will be used.
  - paymentservice.yaml
  - productcatalogservice.yaml
@@ -39,3 +40,5 @@ resources:
 # - ../kustomize/components/container-images-tag
 # - ../kustomize/components/container-images-tag-suffix
 # - ../kustomize/components/container-images-registry
+
+

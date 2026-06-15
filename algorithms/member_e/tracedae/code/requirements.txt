@@ -1,0 +1,30 @@
+# TraceDAE: Trace-Based Anomaly Detection in Microservice Systems via Dual Autoencoder
+# TNSM 2025 - 复现实验依赖
+
+# ==================== 深度学习框架 ====================
+torch>=2.0.1
+torch-geometric>=2.3.1
+dgl>=1.1.2
+
+# ==================== 科学计算 ====================
+numpy>=1.24.3
+scikit-learn>=1.2.2
+scipy>=1.10.1
+pandas>=2.0.3
+
+# ==================== 可视化 ====================
+matplotlib>=3.7.2
+networkx>=3.1
+seaborn>=0.12.2
+
+# ==================== 配置管理 ====================
+pyyaml>=6.0
+
+# ==================== 监控与数据采集（可选，生产环境） ====================
+# prometheus-client>=0.17.1
+# opentelemetry-api>=1.18.0
+# opentelemetry-sdk>=1.18.0
+
+# ==================== 对比实验额外依赖 ====================
+# scikit-learn（DBSCAN已内置）
+# 若需GPU加速DBSCAN可安装：cudf-cu11 cuml-cu11

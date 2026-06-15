@@ -8,7 +8,7 @@ import (
 
 func TestDecodeMoneyHeader_ParsesUnits(t *testing.T) {
 	header := http.Header{}
-	header.Set("x-boutique-final-total", "CNY:320:0")
+	header.Set("x-boutique-final-total", "USD:320:0")
 
 	money := decodeMoneyHeader(header, "x-boutique-final-total")
 	if money == nil {

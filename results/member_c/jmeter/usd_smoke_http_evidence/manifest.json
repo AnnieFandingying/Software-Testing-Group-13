@@ -1,0 +1,117 @@
+[
+  {
+    "request_url": "http://100.110.3.67:18081/",
+    "method": "GET",
+    "label": "GET Home",
+    "headers": {
+      "Connection": "close",
+      "Transfer-Encoding": "chunked",
+      "Content-Type": "text/html; charset=utf-8",
+      "Date": "Sat, 13 Jun 2026 20:01:08 GMT",
+      "Set-Cookie": "shop_session-id=4ff2ee1b-4582-4d42-ab75-f56b9d46d6e2; Max-Age=172800"
+    },
+    "final_url": "http://100.110.3.67:18081/",
+    "response_code": "200",
+    "response_message": "OK",
+    "success": true,
+    "failure_message": "",
+    "elapsed_ms": 1090,
+    "body_bytes": 10499,
+    "file": "01_get_home.html"
+  },
+  {
+    "request_url": "http://100.110.3.67:18081/setCurrency",
+    "method": "POST",
+    "label": "POST Set Currency",
+    "headers": {
+      "Connection": "close",
+      "Transfer-Encoding": "chunked",
+      "Content-Type": "text/html; charset=utf-8",
+      "Date": "Sat, 13 Jun 2026 20:01:10 GMT"
+    },
+    "final_url": "http://100.110.3.67:18081/",
+    "response_code": "200",
+    "response_message": "OK",
+    "success": true,
+    "failure_message": "",
+    "elapsed_ms": 1636,
+    "body_bytes": 10499,
+    "file": "02_post_set_currency.html"
+  },
+  {
+    "request_url": "http://100.110.3.67:18081/product/1YMWWN1N4O",
+    "method": "GET",
+    "label": "GET Product Detail",
+    "headers": {
+      "Connection": "close",
+      "Transfer-Encoding": "chunked",
+      "Content-Type": "text/html; charset=utf-8",
+      "Date": "Sat, 13 Jun 2026 20:01:11 GMT"
+    },
+    "final_url": "http://100.110.3.67:18081/product/1YMWWN1N4O",
+    "response_code": "200",
+    "response_message": "OK",
+    "success": true,
+    "failure_message": "",
+    "elapsed_ms": 901,
+    "body_bytes": 7958,
+    "file": "03_get_product_detail.html"
+  },
+  {
+    "request_url": "http://100.110.3.67:18081/cart",
+    "method": "POST",
+    "label": "POST Add To Cart",
+    "headers": {
+      "Connection": "close",
+      "Transfer-Encoding": "chunked",
+      "Content-Type": "text/html; charset=utf-8",
+      "Date": "Sat, 13 Jun 2026 20:01:12 GMT"
+    },
+    "final_url": "http://100.110.3.67:18081/cart",
+    "response_code": "200",
+    "response_message": "OK",
+    "success": true,
+    "failure_message": "",
+    "elapsed_ms": 1831,
+    "body_bytes": 16463,
+    "file": "04_post_add_to_cart.html"
+  },
+  {
+    "request_url": "http://100.110.3.67:18081/cart",
+    "method": "GET",
+    "label": "GET Cart",
+    "headers": {
+      "Connection": "close",
+      "Transfer-Encoding": "chunked",
+      "Content-Type": "text/html; charset=utf-8",
+      "Date": "Sat, 13 Jun 2026 20:01:13 GMT"
+    },
+    "final_url": "http://100.110.3.67:18081/cart",
+    "response_code": "200",
+    "response_message": "OK",
+    "success": true,
+    "failure_message": "",
+    "elapsed_ms": 1047,
+    "body_bytes": 16463,
+    "file": "05_get_cart.html"
+  },
+  {
+    "request_url": "http://100.110.3.67:18081/cart/checkout",
+    "method": "POST",
+    "label": "POST Checkout",
+    "headers": {
+      "Connection": "close",
+      "Transfer-Encoding": "chunked",
+      "Content-Type": "text/html; charset=utf-8",
+      "Date": "Sat, 13 Jun 2026 20:01:15 GMT"
+    },
+    "final_url": "http://100.110.3.67:18081/cart/checkout",
+    "response_code": "200",
+    "response_message": "OK",
+    "success": true,
+    "failure_message": "",
+    "elapsed_ms": 826,
+    "body_bytes": 6829,
+    "file": "06_post_checkout.html"
+  }
+]

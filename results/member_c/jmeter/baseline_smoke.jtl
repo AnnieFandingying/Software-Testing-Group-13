@@ -1,0 +1,45 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1781380390175,6194,E2E Browse And Checkout,500,"Number of samples in transaction : 6, number of failing samples : 1",Checkout Concurrent Users 1-1,,false,,68682,3111,1,1,null,0,3624,14
+1781380390630,2548,GET Home,200,OK,Checkout Concurrent Users 1-1,text,true,,10795,239,1,1,http://100.110.3.67:18081/,2544,0,14
+1781380394177,1091,POST Set Currency CNY,200,OK,Checkout Concurrent Users 1-1,text,true,,10917,734,1,1,http://100.110.3.67:18081/,351,0,0
+1781380394177,351,POST Set Currency CNY-0,302,Found,Checkout Concurrent Users 1-1,,true,,215,414,1,1,http://100.110.3.67:18081/setCurrency,351,0,0
+1781380394529,739,POST Set Currency CNY-1,200,OK,Checkout Concurrent Users 1-1,text,true,,10702,320,1,1,http://100.110.3.67:18081/,739,0,0
+1781380395613,394,GET Product Detail,200,OK,Checkout Concurrent Users 1-1,text,true,,8151,338,1,1,http://100.110.3.67:18081/product/1YMWWN1N4O,393,0,0
+1781380396399,1079,POST Add To Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16809,765,1,1,http://100.110.3.67:18081/cart,450,0,0
+1781380396399,450,POST Add To Cart-0,302,Found,Checkout Concurrent Users 1-1,,true,,172,441,1,1,http://100.110.3.67:18081/cart,450,0,0
+1781380396850,628,POST Add To Cart-1,200,OK,Checkout Concurrent Users 1-1,text,true,,16637,324,1,1,http://100.110.3.67:18081/cart,627,0,0
+1781380398489,606,GET Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16611,324,1,1,http://100.110.3.67:18081/cart,606,0,0
+1781380399512,476,POST Checkout CNY Discount,500,Internal Server Error,Checkout Concurrent Users 1-1,text,false,checkout response did not contain success page,5399,711,1,1,http://100.110.3.67:18081/cart/checkout,476,0,0
+1781380399994,4512,E2E Browse And Checkout,500,"Number of samples in transaction : 6, number of failing samples : 1",Checkout Concurrent Users 1-1,,false,,68720,3111,1,1,null,0,3385,6
+1781380400402,928,GET Home,200,OK,Checkout Concurrent Users 1-1,text,true,,10795,239,1,1,http://100.110.3.67:18081/,927,0,6
+1781380402104,1029,POST Set Currency CNY,200,OK,Checkout Concurrent Users 1-1,text,true,,10917,734,1,1,http://100.110.3.67:18081/,336,0,0
+1781380402104,336,POST Set Currency CNY-0,302,Found,Checkout Concurrent Users 1-1,,true,,215,414,1,1,http://100.110.3.67:18081/setCurrency,336,0,0
+1781380402440,693,POST Set Currency CNY-1,200,OK,Checkout Concurrent Users 1-1,text,true,,10702,320,1,1,http://100.110.3.67:18081/,693,0,0
+1781380403791,503,GET Product Detail,200,OK,Checkout Concurrent Users 1-1,text,true,,8161,338,1,1,http://100.110.3.67:18081/product/1YMWWN1N4O,503,0,0
+1781380404984,898,POST Add To Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16781,765,1,1,http://100.110.3.67:18081/cart,311,0,0
+1781380404984,311,POST Add To Cart-0,302,Found,Checkout Concurrent Users 1-1,,true,,172,441,1,1,http://100.110.3.67:18081/cart,311,0,0
+1781380405295,587,POST Add To Cart-1,200,OK,Checkout Concurrent Users 1-1,text,true,,16609,324,1,1,http://100.110.3.67:18081/cart,586,0,0
+1781380406288,635,GET Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16667,324,1,1,http://100.110.3.67:18081/cart,635,0,0
+1781380407371,519,POST Checkout CNY Discount,500,Internal Server Error,Checkout Concurrent Users 1-1,text,false,checkout response did not contain success page,5399,711,1,1,http://100.110.3.67:18081/cart/checkout,519,0,0
+1781380407892,4205,E2E Browse And Checkout,500,"Number of samples in transaction : 6, number of failing samples : 1",Checkout Concurrent Users 1-1,,false,,68694,3111,1,1,null,0,3743,1
+1781380408389,1038,GET Home,200,OK,Checkout Concurrent Users 1-1,text,true,,10795,239,1,1,http://100.110.3.67:18081/,1037,0,1
+1781380410339,907,POST Set Currency CNY,200,OK,Checkout Concurrent Users 1-1,text,true,,10917,734,1,1,http://100.110.3.67:18081/,301,0,0
+1781380410339,301,POST Set Currency CNY-0,302,Found,Checkout Concurrent Users 1-1,,true,,215,414,1,1,http://100.110.3.67:18081/setCurrency,301,0,0
+1781380410640,606,POST Set Currency CNY-1,200,OK,Checkout Concurrent Users 1-1,text,true,,10702,320,1,1,http://100.110.3.67:18081/,606,0,0
+1781380411563,490,GET Product Detail,200,OK,Checkout Concurrent Users 1-1,text,true,,8151,338,1,1,http://100.110.3.67:18081/product/1YMWWN1N4O,490,0,0
+1781380412460,856,POST Add To Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16791,765,1,1,http://100.110.3.67:18081/cart,310,0,0
+1781380412460,310,POST Add To Cart-0,302,Found,Checkout Concurrent Users 1-1,,true,,172,441,1,1,http://100.110.3.67:18081/cart,310,0,0
+1781380412770,546,POST Add To Cart-1,200,OK,Checkout Concurrent Users 1-1,text,true,,16619,324,1,1,http://100.110.3.67:18081/cart,545,0,0
+1781380414308,524,GET Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16641,324,1,1,http://100.110.3.67:18081/cart,524,0,0
+1781380415448,390,POST Checkout CNY Discount,500,Internal Server Error,Checkout Concurrent Users 1-1,text,false,checkout response did not contain success page,5399,711,1,1,http://100.110.3.67:18081/cart/checkout,390,0,0
+1781380415840,4412,E2E Browse And Checkout,500,"Number of samples in transaction : 6, number of failing samples : 1",Checkout Concurrent Users 1-1,,false,,68694,3111,1,1,null,0,5061,2
+1781380416862,951,GET Home,200,OK,Checkout Concurrent Users 1-1,text,true,,10795,239,1,1,http://100.110.3.67:18081/,951,0,2
+1781380418858,1178,POST Set Currency CNY,200,OK,Checkout Concurrent Users 1-1,text,true,,10917,734,1,1,http://100.110.3.67:18081/,530,0,0
+1781380418858,530,POST Set Currency CNY-0,302,Found,Checkout Concurrent Users 1-1,,true,,215,414,1,1,http://100.110.3.67:18081/setCurrency,530,0,0
+1781380419388,648,POST Set Currency CNY-1,200,OK,Checkout Concurrent Users 1-1,text,true,,10702,320,1,1,http://100.110.3.67:18081/,648,0,0
+1781380420812,396,GET Product Detail,200,OK,Checkout Concurrent Users 1-1,text,true,,8157,338,1,1,http://100.110.3.67:18081/product/1YMWWN1N4O,396,0,0
+1781380421840,831,POST Add To Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16819,765,1,1,http://100.110.3.67:18081/cart,336,0,0
+1781380421840,336,POST Add To Cart-0,302,Found,Checkout Concurrent Users 1-1,,true,,172,441,1,1,http://100.110.3.67:18081/cart,336,0,0
+1781380422176,495,POST Add To Cart-1,200,OK,Checkout Concurrent Users 1-1,text,true,,16647,324,1,1,http://100.110.3.67:18081/cart,495,0,0
+1781380423072,628,GET Cart,200,OK,Checkout Concurrent Users 1-1,text,true,,16607,324,1,1,http://100.110.3.67:18081/cart,628,0,0
+1781380424884,428,POST Checkout CNY Discount,500,Internal Server Error,Checkout Concurrent Users 1-1,text,false,checkout response did not contain success page,5399,711,1,1,http://100.110.3.67:18081/cart/checkout,428,0,0

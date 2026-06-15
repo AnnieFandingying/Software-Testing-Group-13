@@ -4,18 +4,26 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	pb "github.com/GoogleCloudPlatform/microservices-demo/src/discountservice/genproto"
 	"github.com/sirupsen/logrus"
 )
 
-const cnyCurrency = "CNY"
-
 type discountRule struct {
 	Threshold int64
 	Discount  int64
 	Code      string
+}
+
+var discountCurrencies = map[string]struct{}{
+	"EUR": {},
+	"USD": {},
+	"JPY": {},
+	"GBP": {},
+	"TRY": {},
+	"CAD": {},
 }
 
 var discountRules = []discountRule{
@@ -47,22 +55,24 @@ type discountServer struct {
 	telemetry telemetryReporter
 }
 
-func evaluateDiscount(amount *pb.Money) (*pb.GetDiscountResponse, error) {
+func evaluateDiscount(amount *pb.Money, requestedCurrency string) (*pb.GetDiscountResponse, error) {
 	if amount == nil {
 		return nil, fmt.Errorf("amount is required")
 	}
-	if amount.GetCurrencyCode() != cnyCurrency {
-		zero := &pb.Money{CurrencyCode: amount.GetCurrencyCode()}
+	currency := normalizeDiscountCurrency(amount.GetCurrencyCode(), requestedCurrency)
+	original := &pb.Money{CurrencyCode: currency, Units: amount.GetUnits(), Nanos: amount.GetNanos()}
+	if !isDiscountCurrency(currency) {
+		zero := &pb.Money{CurrencyCode: currency}
 		return &pb.GetDiscountResponse{
-			OriginalAmount: amount,
+			OriginalAmount: original,
 			DiscountAmount: zero,
-			FinalAmount:    amount,
+			FinalAmount:    original,
 			AppliedRule:    "NO_DISCOUNT",
-			Description:    "discount skipped for non-CNY currency",
+			Description:    "discount skipped for unsupported currency",
 		}, nil
 	}
 
-	finalUnits := amount.GetUnits()
+	finalUnits := original.GetUnits()
 	discountUnits := int64(0)
 	ruleCode := "NO_DISCOUNT"
 	for _, rule := range discountRules {
@@ -75,17 +85,29 @@ func evaluateDiscount(amount *pb.Money) (*pb.GetDiscountResponse, error) {
 
 	finalUnits -= discountUnits
 	return &pb.GetDiscountResponse{
-		OriginalAmount: amount,
-		DiscountAmount: &pb.Money{CurrencyCode: amount.GetCurrencyCode(), Units: discountUnits},
-		FinalAmount:    &pb.Money{CurrencyCode: amount.GetCurrencyCode(), Units: finalUnits},
+		OriginalAmount: original,
+		DiscountAmount: &pb.Money{CurrencyCode: currency, Units: discountUnits},
+		FinalAmount:    &pb.Money{CurrencyCode: currency, Units: finalUnits, Nanos: original.GetNanos()},
 		AppliedRule:    ruleCode,
 		Description:    fmt.Sprintf("applied %s", ruleCode),
 	}, nil
 }
 
+func normalizeDiscountCurrency(amountCurrency, requestedCurrency string) string {
+	if requestedCurrency != "" {
+		return strings.ToUpper(requestedCurrency)
+	}
+	return strings.ToUpper(amountCurrency)
+}
+
+func isDiscountCurrency(currency string) bool {
+	_, ok := discountCurrencies[strings.ToUpper(currency)]
+	return ok
+}
+
 func (s *discountServer) GetDiscount(ctx context.Context, req *pb.GetDiscountRequest) (*pb.GetDiscountResponse, error) {
 	start := time.Now()
-	resp, err := evaluateDiscount(req.GetOriginalAmount())
+	resp, err := evaluateDiscount(req.GetOriginalAmount(), req.GetCurrencyCode())
 	status := "ok"
 	errorType := "none"
 	if err != nil {

@@ -17,13 +17,21 @@ import (
 )
 
 const (
-	cnyCurrency             = "CNY"
 	headerOriginalTotal     = "x-boutique-original-total"
 	headerFinalTotal        = "x-boutique-final-total"
 	headerDiscountAmount    = "x-boutique-discount-amount"
 	headerDiscountRule      = "x-boutique-discount-rule"
 	defaultTelemetryTimeout = 100 * time.Millisecond
 )
+
+var discountCurrencies = map[string]struct{}{
+	"EUR": {},
+	"USD": {},
+	"JPY": {},
+	"GBP": {},
+	"TRY": {},
+	"CAD": {},
+}
 
 type telemetryEvent struct {
 	Service        string  `json:"service"`
@@ -47,7 +55,7 @@ type discountDecision struct {
 }
 
 func discountDecisionForCurrency(currency string, original *pb.Money, resp *pb.GetDiscountResponse) discountDecision {
-	if currency != cnyCurrency || resp == nil {
+	if !isDiscountCurrency(currency) || resp == nil {
 		return discountDecision{
 			ShouldCallService: false,
 			OriginalAmount:    original,
@@ -65,8 +73,13 @@ func discountDecisionForCurrency(currency string, original *pb.Money, resp *pb.G
 	}
 }
 
+func isDiscountCurrency(currency string) bool {
+	_, ok := discountCurrencies[strings.ToUpper(currency)]
+	return ok
+}
+
 func (cs *checkoutService) getDiscount(ctx context.Context, currency string, original *pb.Money) (discountDecision, error) {
-	if currency != cnyCurrency {
+	if !isDiscountCurrency(currency) {
 		return discountDecisionForCurrency(currency, original, nil), nil
 	}
 	resp, err := pb.NewDiscountServiceClient(cs.discountSvcConn).GetDiscount(ctx, &pb.GetDiscountRequest{

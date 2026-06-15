@@ -22,6 +22,42 @@ from .tools import execute_tool, get_tool_schemas
 
 logger = logging.getLogger("veadk.agent")
 
+# 延迟导入避免循环依赖
+_report_store_imported = False
+
+
+def _save_to_history(alert_context: str, report_text: str):
+    """诊断完成后自动保存到 SQLite + Markdown 文件 + 群聊通知"""
+    global _report_store_imported
+    try:
+        if not _report_store_imported:
+            from .report_store import save_diagnosis  # noqa: F811
+            _report_store_imported = True
+        from .report_store import save_diagnosis
+        record_id = save_diagnosis(alert_context, report_text)
+        logger.info("诊断已归档: id=%d", record_id)
+
+        # 群聊通知（如果配置了 webhook URL）
+        try:
+            from .config import get_config
+            from .notify import send_notification, is_configured
+            cfg = get_config()
+            if is_configured(cfg.notify_webhook_url):
+                send_notification(alert_context, report_text, cfg.notify_webhook_url, record_id)
+        except Exception:
+            pass
+
+        # 知识库提取
+        try:
+            from .report_store import _extract_json
+            from .knowledge import extract_and_store
+            report_json = _extract_json(report_text)
+            extract_and_store(record_id, alert_context, report_json)
+        except Exception:
+            pass
+    except Exception as e:
+        logger.warning("诊断归档失败（不影响主流程）: %s", e)
+
 # ============================================================================
 # System Prompt — Agent 人设与专家知识
 # ============================================================================
@@ -175,9 +211,18 @@ class AIOpsAgent:
         logger.info("=" * 60)
         logger.info("[Agent 唤醒] 接收告警: %s", alert_context[:200])
 
-        # 构建消息上下文
+        # 检索知识库中的历史相似案例
+        knowledge_context = ""
+        try:
+            from .knowledge import get_knowledge_context
+            knowledge_context = get_knowledge_context(alert_context)
+        except Exception:
+            pass
+
+        # 构建消息上下文（注入知识库案例）
+        system_content = SYSTEM_PROMPT + knowledge_context
         messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": system_content},
             {
                 "role": "user",
                 "content": (
@@ -213,6 +258,7 @@ class AIOpsAgent:
                 )
                 if alert_fingerprint:
                     self._record_diagnosis(alert_fingerprint)
+                _save_to_history(alert_context, error_report)
                 return error_report
 
             response_message = response.choices[0].message
@@ -285,6 +331,9 @@ class AIOpsAgent:
             logger.info("  %s", line)
         logger.info("=" * 60)
 
+        # 自动保存到 SQLite + 生成 Markdown 报告
+        _save_to_history(alert_context, final_report)
+
         return final_report
 
     def quick_check(self, query: str) -> str:
@@ -311,6 +360,52 @@ class AIOpsAgent:
             return response.choices[0].message.content or ""
         except Exception as e:
             return f"快速咨询失败: {e}"
+
+    def bulk_diagnose(self, alerts: list[dict], fingerprint: str = None) -> str:
+        """
+        告警聚合推理：同时分析多条告警，识别共同根因。
+
+        当 Alertmanager 在短时间内触发多条告警时，
+        不逐一处理，而是打包发送给 LLM 进行关联分析。
+
+        Args:
+            alerts: 告警列表，每个元素含 {alertname, severity, service, summary}
+            fingerprint: 聚合告警指纹（用于冷却期去重）
+
+        Returns:
+            聚合诊断报告
+        """
+        if not alerts:
+            return "无告警需要分析"
+
+        if len(alerts) == 1:
+            a = alerts[0]
+            svc = a.get("service", "unknown")
+            return self.diagnose(
+                f"[{a.get('severity', 'warning')}] {a.get('alertname', 'Alert')}: "
+                f"{a.get('summary', '')} (服务: {svc})",
+                alert_fingerprint=fingerprint,
+            )
+
+        # 构建聚合告警描述
+        alert_lines = ["## 批量告警聚合分析", "", f"共收到 {len(alerts)} 条告警，请进行关联分析，识别共同根因：", ""]
+        for i, a in enumerate(alerts, 1):
+            alert_lines.append(
+                f"{i}. **[{a.get('severity', 'warning').upper()}] {a.get('alertname', 'Alert')}**\n"
+                f"   服务: `{a.get('service', 'unknown')}`\n"
+                f"   摘要: {a.get('summary', 'N/A')}\n"
+                f"   描述: {a.get('description', 'N/A')}"
+            )
+
+        alert_lines.append("")
+        alert_lines.append("请分析：")
+        alert_lines.append("1. 这些告警是否由同一个根因引起？")
+        alert_lines.append("2. 如果是，真正的根因是什么？哪条告警是根源，哪些是连锁反应？")
+        alert_lines.append("3. 应该优先修复哪个服务？")
+        alert_lines.append("4. 是否需要重启操作的组合，还是只需修复根源即可？")
+
+        aggregated_context = "\n".join(alert_lines)
+        return self.diagnose(aggregated_context, alert_fingerprint=fingerprint)
 
 
 # ============================================================================

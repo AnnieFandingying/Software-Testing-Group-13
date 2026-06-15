@@ -1,0 +1,56 @@
+{
+  "config": {
+    "model": {
+      "input_dim": 4,
+      "hidden_dim": 96,
+      "num_heads": 2,
+      "num_lstm_layers": 1,
+      "alpha": 0.1,
+      "theta": 5.0,
+      "eta": 2.0,
+      "dropout": 0.1
+    },
+    "training": {
+      "epochs": 80,
+      "learning_rate": 0.001,
+      "weight_decay": 1e-05,
+      "seed": 42
+    },
+    "data": {
+      "train_ratio": 0.7,
+      "val_ratio": 0.0,
+      "test_ratio": 0.3
+    }
+  },
+  "data": {
+    "n_traces": 460,
+    "n_stgs": 460,
+    "n_clean": 459
+  },
+  "detection": {
+    "precision": 0.72,
+    "recall": 1.0,
+    "f1": 0.8372093023255814,
+    "inference_ms": 2.426655797166134,
+    "n_samples": 138,
+    "n_anomalies": 18
+  },
+  "ablation": {
+    "Full TraceDAE": {
+      "f1": 0.9833333333333333
+    },
+    "w/o Attribute-AE": {
+      "f1": 0.3037974683544304
+    },
+    "w/o Structure-AE": {
+      "f1": 0.9833333333333333
+    },
+    "alpha = 0": {
+      "f1": 0.9833333333333333
+    },
+    "alpha = 1": {
+      "f1": 0.11267605633802817
+    }
+  },
+  "verdict": "PASS"
+}
