@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -19,6 +21,9 @@ def main() -> int:
     )
     parser.add_argument("--dataset-name", default="memberd_online_boutique")
     parser.add_argument("--batch-size", default="32")
+    parser.add_argument("--seq-len", default="100")
+    parser.add_argument("--patch-len", default="5")
+    parser.add_argument("--stride", default="5")
     parser.add_argument("--metric", nargs="+", default=["affiliation", "auc", "best_f1"])
     parser.add_argument("--thresholds", nargs="+", default=["0.20", "0.25", "0.30"])
     parser.add_argument("--gpu", default=None, help="GPU id. Omit to force CPU.")
@@ -33,7 +38,7 @@ def main() -> int:
         raise SystemExit(f"prepared DADA root missing DETECT_META.csv: {root_path}")
 
     cmd = [
-        "python",
+        sys.executable,
         "-u",
         "run.py",
         "--metric",
@@ -52,6 +57,12 @@ def main() -> int:
         "zero_shot",
         "--batch_size",
         args.batch_size,
+        "--seq_len",
+        args.seq_len,
+        "--patch_len",
+        args.patch_len,
+        "--stride",
+        args.stride,
     ]
     if args.gpu is None:
         cmd.extend(["--use_gpu", "False"])
@@ -59,7 +70,11 @@ def main() -> int:
         cmd.extend(["--use_gpu", "True", "--gpu", args.gpu])
 
     print(" ".join(cmd))
-    subprocess.run(cmd, cwd=dada_root, check=True)
+    env = os.environ.copy()
+    hf_home = member_root / ".hf_cache"
+    env.setdefault("HF_HOME", str(hf_home))
+    env.setdefault("HF_MODULES_CACHE", str(hf_home / "modules"))
+    subprocess.run(cmd, cwd=dada_root, check=True, env=env)
     return 0
 
 

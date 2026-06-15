@@ -21,15 +21,15 @@ from pathlib import Path
 DEFAULT_QUERIES = [
     {
         "metric": "pod_cpu",
-        "query": 'sum(rate(container_cpu_usage_seconds_total{namespace="{namespace}"}[1m])) by (pod)',
+        "query": 'sum(rate(container_cpu_usage_seconds_total{{namespace="{namespace}"}}[1m])) by (pod)',
     },
     {
         "metric": "pod_memory",
-        "query": 'sum(container_memory_usage_bytes{namespace="{namespace}"}) by (pod)',
+        "query": 'sum(container_memory_usage_bytes{{namespace="{namespace}"}}) by (pod)',
     },
     {
         "metric": "pod_restarts",
-        "query": 'kube_pod_container_status_restarts_total{namespace="{namespace}"}',
+        "query": 'kube_pod_container_status_restarts_total{{namespace="{namespace}"}}',
     },
     {"metric": "boutique_requests", "query": "boutique_requests_total"},
     {"metric": "boutique_errors", "query": "boutique_errors_total"},
@@ -157,4 +157,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

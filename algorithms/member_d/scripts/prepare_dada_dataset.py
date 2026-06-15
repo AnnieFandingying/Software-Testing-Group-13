@@ -51,6 +51,20 @@ def infer_train_lens(timestamps: list[int], labels: dict[int, int], fallback_rat
     return max(int(len(timestamps) * fallback_ratio), 1)
 
 
+def align_series(metric_values: dict[int, float], timestamps: list[int]) -> dict[int, float]:
+    points = sorted(metric_values.items())
+    first_value = points[0][1]
+    last_value = first_value
+    idx = 0
+    aligned: dict[int, float] = {}
+    for timestamp in timestamps:
+        while idx < len(points) and points[idx][0] <= timestamp:
+            last_value = points[idx][1]
+            idx += 1
+        aligned[timestamp] = last_value if idx > 0 else first_value
+    return aligned
+
+
 def write_meta(path: Path, dataset_file: str, dataset_name: str, train_lens: int, n_points: int) -> None:
     fieldnames = [
         "file_name",
@@ -103,23 +117,42 @@ def main() -> int:
         help="Directory containing DETECT_META.csv and data/",
     )
     parser.add_argument("--train-lens", type=int, help="Number of initial normal time points")
+    parser.add_argument(
+        "--repeat-points",
+        type=int,
+        default=1,
+        help="Repeat each observed timestamp this many times with one-second offsets.",
+    )
     args = parser.parse_args()
 
     values, labels = read_rows(args.input)
     if not values:
         raise SystemExit("no metric values found")
 
-    common_timestamps = None
-    for metric_values in values.values():
-        timestamps = set(metric_values)
-        common_timestamps = timestamps if common_timestamps is None else common_timestamps & timestamps
-    timestamps_sorted = sorted(common_timestamps or [])
+    timestamps_sorted = sorted({timestamp for metric_values in values.values() for timestamp in metric_values})
     if not timestamps_sorted:
-        raise SystemExit("no common timestamps across metrics")
+        raise SystemExit("no timestamps found across metrics")
+    if args.repeat_points < 1:
+        raise SystemExit("repeat-points must be >= 1")
+
+    if args.repeat_points > 1:
+        original_timestamps = timestamps_sorted
+        timestamps_sorted = [
+            timestamp + offset
+            for timestamp in original_timestamps
+            for offset in range(args.repeat_points)
+        ]
+        labels = {
+            timestamp + offset: labels.get(timestamp, 0)
+            for timestamp in original_timestamps
+            for offset in range(args.repeat_points)
+        }
 
     train_lens = args.train_lens or infer_train_lens(timestamps_sorted, labels)
     if train_lens >= len(timestamps_sorted):
         raise SystemExit("train_lens must be smaller than total time points")
+
+    aligned_values = {metric: align_series(metric_values, timestamps_sorted) for metric, metric_values in values.items()}
 
     out_root = Path(args.out_root)
     data_dir = out_root / "data"
@@ -130,12 +163,12 @@ def main() -> int:
     with dataset_path.open("w", encoding="utf-8", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=["date", "value", "cols"])
         writer.writeheader()
-        for metric in sorted(values):
+        for metric in sorted(aligned_values):
             for timestamp in timestamps_sorted:
                 writer.writerow(
                     {
                         "date": format_date(timestamp),
-                        "value": values[metric][timestamp],
+                        "value": aligned_values[metric][timestamp],
                         "cols": metric,
                     }
                 )
@@ -157,4 +190,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

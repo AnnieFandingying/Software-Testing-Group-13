@@ -28,27 +28,23 @@ LLMeLog 是日志异常检测方法。它先把日志模板做语义增强，再
 
 ## 环境准备
 
-两个算法依赖版本不完全一致，建议分别建虚拟环境。
-
-DADA：
+建议使用 conda 创建 Python 3.9 环境。下面这组版本已经在 Windows + CPU 上跑通过 DADA 和 LLMeLog 检测器训练/评估：
 
 ```powershell
 cd "D:\作业\软件测试与维护\Software-Testing-Group-13"
-python -m venv .venv-dada
-.\.venv-dada\Scripts\activate
-pip install -r algorithms\member_d\dada\code\requirements.txt
-```
-
-LLMeLog：
-
-```powershell
-cd "D:\作业\软件测试与维护\Software-Testing-Group-13"
-python -m venv .venv-llmelog
-.\.venv-llmelog\Scripts\activate
-pip install -r algorithms\member_d\llmelog\code\requirements.txt
+conda create -y -n member_d_repro_py39 python=3.9
+conda activate member_d_repro_py39
+pip install numpy==1.23.5 pandas==1.5.3 scikit-learn==1.3.2 matplotlib tqdm thop transformers==4.33.3 torch==1.13.1 pytorch-lightning==1.1.2 protobuf==3.20.3
 ```
 
 不强制使用 Docker。CPU 可以跑通流程；有 GPU 时 DADA 和 LLMeLog 训练会更快。
+
+如果 DADA 加载本地 Hugging Face 模型时报用户目录 cache 权限问题，可以把 cache 放到项目本地：
+
+```powershell
+$env:HF_HOME="$PWD\.hf_cache"
+$env:TRANSFORMERS_CACHE="$PWD\.hf_cache\transformers"
+```
 
 ## 数据放置
 
@@ -119,6 +115,13 @@ algorithms/member_d/data/logs/processed/
 
 ```text
 algorithms/member_d/results/
+```
+
+本地已生成的异常识别展示报告见 `algorithms/member_d/results/final_rerun_test_report.md`。答辩展示建议直接打开：
+
+```text
+algorithms/member_d/results/visualizations/dada_memberd_ob_20260614_184048_timeline.png
+algorithms/member_d/results/visualizations/llmelog_final_rerun_verify_timeline.png
 ```
 
 `data/`、`results/`、LLMeLog 下载权重和训练 checkpoint 都已加入忽略规则，不会把本地数据或大模型误提交到主仓。

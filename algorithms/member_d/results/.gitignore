@@ -1,2 +1,8 @@
 *
 !.gitignore
+!final_rerun_test_report.md
+!final_rerun_f1_for_member_e.csv
+!final_rerun_f1_for_member_e.md
+!visualizations/
+!visualizations/*.png
+!visualizations/*.csv

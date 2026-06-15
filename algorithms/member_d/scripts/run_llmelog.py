@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 
@@ -22,7 +24,9 @@ def ensure_base_bert(llmelog_root: Path, model_id: str) -> None:
 
     tokenizer = AutoTokenizer.from_pretrained(model_id)
     model = AutoModel.from_pretrained(model_id)
+    target.mkdir(parents=True, exist_ok=True)
     tokenizer.save_pretrained(target)
+    target.mkdir(parents=True, exist_ok=True)
     model.save_pretrained(target)
 
 
@@ -35,6 +39,10 @@ def copy_dataset(prepared_dir: Path, llmelog_root: Path, dataset: str) -> None:
         if not src.exists():
             raise SystemExit(f"missing prepared file: {src}")
         shutil.copy2(src, target / name)
+    for name in ["event_templates.csv"]:
+        src = prepared_dir / name
+        if src.exists():
+            shutil.copy2(src, target / name)
     print(f"copied dataset to {target}")
 
 
@@ -60,6 +68,7 @@ def main() -> int:
     )
     parser.add_argument("--hard-device", default="cpu", choices=["cpu", "cuda"])
     parser.add_argument("--gpu-index", default="0")
+    parser.add_argument("--detector-batch-size", default="4")
     parser.add_argument("--auto-download-bert", action="store_true")
     parser.add_argument("--bert-model-id", default=DEFAULT_BERT_MODEL_ID)
     args = parser.parse_args()
@@ -67,6 +76,10 @@ def main() -> int:
     llmelog_root = Path(args.llmelog_root).resolve()
     if not (llmelog_root / "main.py").exists():
         raise SystemExit(f"LLMeLog root not found: {llmelog_root}")
+    member_root = Path(__file__).resolve().parents[1]
+    hf_home = member_root / ".hf_cache"
+    os.environ.setdefault("HF_HOME", str(hf_home))
+    os.environ.setdefault("HF_MODULES_CACHE", str(hf_home / "modules"))
     prepared_dir = Path(args.prepared_dir).resolve()
     copy_dataset(prepared_dir, llmelog_root, args.dataset)
 
@@ -76,22 +89,35 @@ def main() -> int:
     common = ["--dataset", args.dataset, "--hard_device", args.hard_device, "--gpu_index", args.gpu_index]
 
     if "predata" in args.stages:
-        run(["python", "predata.py", "--dataset", args.dataset], llmelog_root)
+        run([sys.executable, "predata.py", "--dataset", args.dataset], llmelog_root)
     if "encoder" in args.stages:
-        run(["python", "main.py", "--mode", "train", "--encoder", "1", "--lr", "0.0002", *common], llmelog_root)
+        run([sys.executable, "main.py", "--mode", "train", "--encoder", "1", "--lr", "0.0002", *common], llmelog_root)
     if "gen" in args.stages:
-        run(["python", "main.py", "--mode", "gen", "--encoder", "1", "--lr", "0.0002", *common], llmelog_root)
+        run([sys.executable, "main.py", "--mode", "gen", "--encoder", "1", "--lr", "0.0002", *common], llmelog_root)
     if "detector" in args.stages:
-        run(["python", "main.py", "--mode", "train", "--batch_size", "256", "--lr", "0.0003", *common], llmelog_root)
+        run(
+            [
+                sys.executable,
+                "main.py",
+                "--mode",
+                "train",
+                "--batch_size",
+                args.detector_batch_size,
+                "--lr",
+                "0.0003",
+                *common,
+            ],
+            llmelog_root,
+        )
     if "eval" in args.stages:
         run(
             [
-                "python",
+                sys.executable,
                 "main.py",
                 "--mode",
                 "eval",
                 "--batch_size",
-                "256",
+                args.detector_batch_size,
                 "--lr",
                 "0.0003",
                 "--load_checkpoint",

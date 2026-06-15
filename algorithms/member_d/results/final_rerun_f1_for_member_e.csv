@@ -1,0 +1,4 @@
+algorithm,direction,dataset,split,threshold_mode,threshold,precision,recall,f1_score,accuracy,note
+DADA,KPI anomaly detection,final_rerun_verify_repeat3,DADA test windows,best_threshold,0.00040277262,1.0,1.0,1.0,0.9997222222,"Use only as final_rerun KPI smoke/comparison value; final_rerun Prometheus labels are almost all anomaly and the data was repeated 3x to satisfy DADA window length."
+LLMeLog,Log anomaly detection,final_rerun_verify,test,best_threshold,0.1916048676,0.2158469945,0.9875,0.3542600897,0.6550898204,"Recommended value for comparison with other final_rerun log algorithms."
+LLMeLog,Log anomaly detection,final_rerun_verify,test,fixed_demo_threshold,0.205,0.2025723473,0.7875,0.3222506394,0.6826347305,"This is the threshold used in the visualization figure, not the best test F1."

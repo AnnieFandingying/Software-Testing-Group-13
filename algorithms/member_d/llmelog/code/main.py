@@ -27,8 +27,7 @@ def str2bool(v):
 
 
 def gen_encoder_embedding(sent, tokenizer, model):
-    if (len(sent) >= 500): sent = sent[:500]
-    inputs = tokenizer(sent, return_tensors="pt")
+    inputs = tokenizer(sent, return_tensors="pt", truncation=True, max_length=512)
     output_pooler = model(**inputs)[1][0]   
     return output_pooler.tolist()
 
@@ -60,6 +59,7 @@ def parse_args():
     parser.add_argument('--model_save_path', default='checkpoint', type=str)
     parser.add_argument('--epochs', default=10, type=int, help='epochs')
     parser.add_argument('--batch_size', default=4, type=int, help='batch_size, 4 for hsf, 256 for classifier')
+    parser.add_argument('--num_workers', default=0, type=int, help='data loader workers')
     parser.add_argument('--warmup_epochs', default=8, type=int, help='warmup')
     parser.add_argument('--lr', default=2e-4, type=float, help='learning rate, 2e-4 for hsf, 3e-4 for classifier')
     parser.add_argument('--accumulate_grad_batches',
@@ -104,15 +104,15 @@ def main():
         train_loader = HSFloader('data/' + args.dataset + '/train.json',
                                             batch_size=args.batch_size,
                                             shuffle=True,
-                                            num_workers=4)
+                                            num_workers=args.num_workers)
         valid_loader = HSFloader('data/' + args.dataset + '/dev.json',
                                             batch_size=args.batch_size,
                                             shuffle=False,
-                                            num_workers=4)
+                                            num_workers=args.num_workers)
         test_loader = HSFloader('data/' + args.dataset + '/test.json',
                                         batch_size=args.batch_size,
                                         shuffle=False,
-                                        num_workers=4)
+                                        num_workers=args.num_workers)
     
     else:
         embedding_dict = load_json('data/' + args.dataset + '/emd_dict.json')
@@ -121,22 +121,22 @@ def main():
         train_loader = ADloader('data/' + args.dataset + '/train.txt',
                                             batch_size=args.batch_size,
                                             shuffle=True,
-                                            num_workers=4)
+                                            num_workers=args.num_workers)
         valid_loader = ADloader('data/' + args.dataset + '/dev.txt',
                                             batch_size=args.batch_size,
                                             shuffle=False,
-                                            num_workers=4)
+                                            num_workers=args.num_workers)
         test_loader = ADloader('data/' + args.dataset + '/test.txt',
                                         batch_size=args.batch_size,
                                         shuffle=False,
-                                        num_workers=4)
+                                        num_workers=args.num_workers)
 
     trainer = pl.Trainer(max_epochs=args.epochs,
                          gpus=None if args.hard_device == 'cpu' else [args.gpu_index],
                          accumulate_grad_batches=args.accumulate_grad_batches)
     
     if args.load_checkpoint:
-        model.load_state_dict(torch.load(get_abs_path('checkpoint', f'{model.__class__.__name__}_model.bin'),
+        model.load_state_dict(torch.load(get_abs_path(args.model_save_path, f'{model.__class__.__name__}_model.bin'),
                                          map_location=args.hard_device))
 
     if args.mode == 'eval':
@@ -158,15 +158,10 @@ def main():
                 else:
                     if torch.argmax(p_labels[i]) == 1: fp += 1
                     else: tn += 1
-        if tp != 0:
-            p = tp / (tp + fp)
-            r = tp / (tp + fn)
-            f1 = 2 * p * r / (p + r)
-            acc = (tp + tn) / (tp + tn + fp + fn)
-        else:
-            p = 0
-            r = 0
-            f1 = 0
+        p = tp / (tp + fp) if (tp + fp) else 0
+        r = tp / (tp + fn) if (tp + fn) else 0
+        f1 = 2 * p * r / (p + r) if (p + r) else 0
+        acc = (tp + tn) / (tp + tn + fp + fn) if (tp + tn + fp + fn) else 0
         print("P:", p)
         print("R: ", r)
         print("F1: ", f1) 
@@ -179,7 +174,7 @@ def main():
         trainer.fit(model, train_loader, valid_loader)
 
         model.load_state_dict(
-            torch.load(get_abs_path('checkpoint', f'{model.__class__.__name__}_model.bin'), map_location=args.hard_device))
+            torch.load(get_abs_path(args.model_save_path, f'{model.__class__.__name__}_model.bin'), map_location=args.hard_device))
         trainer.test(model, test_loader)
     else:
         trainer.test(model, test_loader)

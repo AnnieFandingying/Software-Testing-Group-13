@@ -30,7 +30,10 @@ class DADA(object):
             root_path=self.args.root_path, 
             datasets=self.args.data, 
             batch_size=self.args.batch_size, 
+            win_size=getattr(self.args, "seq_len", 100),
+            step=getattr(self.args, "stride", 100),
             flag=flag, 
+            num_workers=getattr(self.args, "num_workers", 0),
         )
         return data_set, data_loader
 
@@ -70,4 +73,3 @@ class DADA(object):
         from ts_ad_evaluation import Evaluator
         evaluator = Evaluator(gt, test_scores, folder_path)
         evaluator.evaluate(metrics=self.args.metric, affiliation=self.args.t)  
-

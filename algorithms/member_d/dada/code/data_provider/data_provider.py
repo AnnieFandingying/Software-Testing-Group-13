@@ -7,7 +7,7 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-def data_provider(root_path, datasets, batch_size, win_size=100, step=100, flag="train", percentage=1):
+def data_provider(root_path, datasets, batch_size, win_size=100, step=100, flag="train", percentage=1, num_workers=0):
     if flag == "train": shuffle = True
     else: shuffle = False
     print(f"loading {datasets}({flag}) percentage: {percentage*100}% ...", end="")
@@ -17,7 +17,7 @@ def data_provider(root_path, datasets, batch_size, win_size=100, step=100, flag=
     if datasets == "SMAP": discrete_channels = range(1, 25)
     if datasets == "SWAT": discrete_channels =  [2,4,9,10,11,13,15,19,20,21,22,29,30,31,32,33,42,43,48,50]
     data_set = TrainSegLoader(file_paths, train_lens, win_size, step, flag, percentage, discrete_channels)
-    data_loader = DataLoader(data_set, batch_size=batch_size, shuffle=shuffle, num_workers=8, drop_last=False)
+    data_loader = DataLoader(data_set, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, drop_last=False)
     print("done!")
     return data_set, data_loader
 

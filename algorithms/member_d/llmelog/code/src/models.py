@@ -38,6 +38,8 @@ class EncoderTrainingModel(pl.LightningModule):
                        os.path.join(self.args.model_save_path, f'{self.__class__.__name__}_model.bin'))
             torch.save(self.model.state_dict(),
                        os.path.join('new_encoder', f'pytorch_model.bin'))
+            self.model.config.save_pretrained('new_encoder')
+            self.tokenizer.save_pretrained('new_encoder')
             print('model saved.')
 
     def test_step(self, batch, batch_idx):
@@ -123,7 +125,13 @@ class HSFencoder(EncoderTrainingModel):
         labels = None
         if len(nomal_src) != 0:
             nomal_tgt = nomal_label.to(self.args.hard_device) 
-            nomal_inputs = self.tokenizer(nomal_src, return_tensors="pt", padding = True).to(self.args.hard_device)
+            nomal_inputs = self.tokenizer(
+                nomal_src,
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=512,
+            ).to(self.args.hard_device)
             nomal_output_pooler = self.model(**nomal_inputs)[1]
             nomal_out = self.fc_nomal(nomal_output_pooler, nomal_tgt)   
             loss = self.loss(nomal_out, nomal_tgt) * 1.5 
@@ -134,7 +142,13 @@ class HSFencoder(EncoderTrainingModel):
         if len(anomal_src) != 0:
             anomal_tgt = anomal_label.to(self.args.hard_device) 
             anomal_class_tgt = anomal_class_label.to(self.args.hard_device)
-            anomal_inputs = self.tokenizer(anomal_src, return_tensors="pt", padding = True).to(self.args.hard_device)
+            anomal_inputs = self.tokenizer(
+                anomal_src,
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=512,
+            ).to(self.args.hard_device)
             anomal_output_pooler = self.model(**anomal_inputs)[1]
             anomal_out = self.fc_nomal(anomal_output_pooler, anomal_tgt)
             anomal_class_out = self.fc_anomal(anomal_output_pooler, anomal_class_tgt)

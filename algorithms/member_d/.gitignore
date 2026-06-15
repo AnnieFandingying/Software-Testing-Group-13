@@ -1,12 +1,15 @@
 __pycache__/
 **/__pycache__/
 *.pyc
+.hf_cache/
 
 llmelog/code/bert-base-en/pytorch_model.bin
 llmelog/code/bert-base-en/model.safetensors
 llmelog/code/new_encoder/pytorch_model.bin
 llmelog/code/new_encoder/model.safetensors
-llmelog/code/checkpoint/
+llmelog/code/checkpoint*/
 llmelog/code/lightning_logs/
 llmelog/code/data/*
 !llmelog/code/data/.gitignore
+
+dada/code/test_results/

@@ -17,6 +17,7 @@ import datetime as dt
 import json
 import random
 import re
+from glob import glob
 from collections import defaultdict
 from pathlib import Path
 
@@ -26,6 +27,13 @@ HEX_RE = re.compile(r"\b0x[0-9a-fA-F]+\b|\b[0-9a-fA-F]{12,}\b")
 NUM_RE = re.compile(r"(?<![A-Za-z])[-+]?\d+(?:\.\d+)?(?:ms|s|m|Mi|Gi|MB|GB|%)?(?![A-Za-z])")
 ANSI_RE = re.compile(r"\x1b\[[0-9;]*m")
 TRACE_RE = re.compile(r"(?:trace_id|trace|request_id|session_id|span_id)=([A-Za-z0-9_.:-]+)")
+ISO_FRACTION_RE = re.compile(r"(\.\d+)((?:[+-]\d{2}:\d{2})?)$")
+
+
+def normalize_iso_fraction(match: re.Match[str]) -> str:
+    fraction = match.group(1)[1:]
+    fraction = (fraction + "000000")[:6]
+    return f".{fraction}{match.group(2) or ''}"
 
 
 def parse_time(value: str) -> int:
@@ -35,6 +43,7 @@ def parse_time(value: str) -> int:
     except ValueError:
         pass
     text = value.replace("Z", "+00:00")
+    text = ISO_FRACTION_RE.sub(normalize_iso_fraction, text)
     parsed = dt.datetime.fromisoformat(text)
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=dt.timezone.utc)
@@ -52,6 +61,18 @@ def load_timeline(path: str | None) -> list[tuple[str, int, int]]:
     return windows
 
 
+def expand_log_paths(patterns: list[str]) -> list[str]:
+    paths: list[str] = []
+    seen: set[str] = set()
+    for pattern in patterns:
+        matches = sorted(glob(pattern))
+        for path in matches or [pattern]:
+            if path not in seen:
+                seen.add(path)
+                paths.append(path)
+    return paths
+
+
 def label_for(run_id: str, timestamp: int | None, windows: list[tuple[str, int, int]]) -> int:
     if timestamp is None:
         return 0
@@ -63,7 +84,45 @@ def label_for(run_id: str, timestamp: int | None, windows: list[tuple[str, int, 
     return 0
 
 
-def read_log_line(line: str, default_run_id: str) -> dict[str, object] | None:
+KNOWN_SERVICES = [
+    "productcatalogservice",
+    "recommendationservice",
+    "checkoutservice",
+    "discountservice",
+    "telemetryservice",
+    "currencyservice",
+    "shippingservice",
+    "paymentservice",
+    "emailservice",
+    "frontend",
+    "adservice",
+    "cartservice",
+    "redis-cart",
+]
+
+
+def infer_context_from_path(path: str, fallback_run_id: str) -> tuple[str, str]:
+    stem = Path(path).stem
+    for service in sorted(KNOWN_SERVICES, key=len, reverse=True):
+        suffix = f"_{service}"
+        if stem.endswith(suffix):
+            return stem[: -len(suffix)], service
+    return fallback_run_id, "unknown"
+
+
+def detect_log_encoding(path: str) -> str:
+    with open(path, "rb") as fh:
+        head = fh.read(4)
+    if head.startswith((b"\xff\xfe", b"\xfe\xff")):
+        return "utf-16"
+    if head.startswith(b"\xef\xbb\xbf"):
+        return "utf-8-sig"
+    if len(head) >= 2 and head[1] == 0:
+        return "utf-16-le"
+    return "utf-8"
+
+
+def read_log_line(line: str, default_run_id: str, default_service: str = "unknown") -> dict[str, object] | None:
     text = ANSI_RE.sub("", line.strip())
     if not text:
         return None
@@ -73,7 +132,7 @@ def read_log_line(line: str, default_run_id: str) -> dict[str, object] | None:
             data = json.loads(text)
             timestamp_raw = str(data.get("timestamp") or data.get("time") or data.get("@timestamp") or "")
             timestamp = parse_time(timestamp_raw) if timestamp_raw else None
-            service = str(data.get("service") or data.get("app") or data.get("container") or "unknown")
+            service = str(data.get("service") or data.get("app") or data.get("container") or default_service)
             pod = str(data.get("pod") or data.get("pod_name") or "")
             message = str(data.get("message") or data.get("msg") or data.get("log") or text)
             run_id = str(data.get("run_id") or default_run_id)
@@ -95,7 +154,7 @@ def read_log_line(line: str, default_run_id: str) -> dict[str, object] | None:
             timestamp = None
         return {"timestamp": timestamp, "service": service, "pod": pod, "message": message, "run_id": run_id}
 
-    return {"timestamp": None, "service": "unknown", "pod": "", "message": text, "run_id": default_run_id}
+    return {"timestamp": None, "service": default_service, "pod": "", "message": text, "run_id": default_run_id}
 
 
 def normalize_template(service: str, message: str) -> str:
@@ -130,7 +189,11 @@ def make_enriched_json(template: str, result_type: str) -> str:
     return json.dumps(payload, ensure_ascii=False)
 
 
-def group_sequences(events: list[dict[str, object]], mode: str, window_seconds: int) -> list[tuple[int, list[int]]]:
+def group_sequences(
+    events: list[dict[str, object]],
+    mode: str,
+    window_seconds: int,
+) -> list[dict[str, object]]:
     groups: dict[tuple[str, object], list[dict[str, object]]] = defaultdict(list)
     for event in events:
         timestamp = event.get("timestamp")
@@ -143,31 +206,43 @@ def group_sequences(events: list[dict[str, object]], mode: str, window_seconds: 
             key = bucket
         groups[(run_id, key)].append(event)
 
-    sequences: list[tuple[int, list[int]]] = []
-    for _, group in sorted(groups.items(), key=lambda item: str(item[0])):
+    sequences: list[dict[str, object]] = []
+    for (run_id, key), group in sorted(groups.items(), key=lambda item: str(item[0])):
         ordered = sorted(group, key=lambda item: item.get("timestamp") or 0)
         ids = [int(item["event_id"]) for item in ordered]
         if not ids:
             continue
         label = max(int(item["label"]) for item in ordered)
-        sequences.append((label, ids))
+        timestamps = [item.get("timestamp") for item in ordered if isinstance(item.get("timestamp"), int)]
+        start_ts = min(timestamps) if timestamps else ""
+        end_ts = max(timestamps) if timestamps else ""
+        sequences.append(
+            {
+                "run_id": str(run_id),
+                "bucket": key,
+                "start_ts": start_ts,
+                "end_ts": end_ts,
+                "label": label,
+                "event_ids": ids,
+            }
+        )
     return sequences
 
 
 def split_sequences(
-    sequences: list[tuple[int, list[int]]],
+    sequences: list[dict[str, object]],
     train_ratio: float,
     dev_ratio: float,
     seed: int,
-) -> tuple[list[tuple[int, list[int]]], list[tuple[int, list[int]]], list[tuple[int, list[int]]]]:
+) -> tuple[list[dict[str, object]], list[dict[str, object]], list[dict[str, object]]]:
     rng = random.Random(seed)
-    by_label: dict[int, list[tuple[int, list[int]]]] = defaultdict(list)
+    by_label: dict[int, list[dict[str, object]]] = defaultdict(list)
     for seq in sequences:
-        by_label[seq[0]].append(seq)
+        by_label[int(seq["label"])].append(seq)
 
-    train: list[tuple[int, list[int]]] = []
-    dev: list[tuple[int, list[int]]] = []
-    test: list[tuple[int, list[int]]] = []
+    train: list[dict[str, object]] = []
+    dev: list[dict[str, object]] = []
+    test: list[dict[str, object]] = []
     for label, items in by_label.items():
         rng.shuffle(items)
         n_train = max(int(len(items) * train_ratio), 1 if items else 0)
@@ -182,11 +257,36 @@ def split_sequences(
     return train, dev, test
 
 
-def write_sequence_file(path: Path, sequences: list[tuple[int, list[int]]]) -> None:
+def write_sequence_file(path: Path, sequences: list[dict[str, object]]) -> None:
     with path.open("w", encoding="utf-8") as fh:
-        for label, event_ids in sequences:
+        for sequence in sequences:
+            label = int(sequence["label"])
+            event_ids = list(sequence["event_ids"])
             joined = " ".join(str(event_id) for event_id in event_ids)
             fh.write(f"{label}:{joined}\n")
+
+
+def write_sequence_meta(path: Path, sequences: list[dict[str, object]], split: str) -> None:
+    fieldnames = ["split", "run_id", "bucket", "start_ts", "end_ts", "label", "event_count", "sequence"]
+    exists = path.exists()
+    with path.open("a" if exists else "w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fieldnames)
+        if not exists:
+            writer.writeheader()
+        for sequence in sequences:
+            event_ids = [str(event_id) for event_id in sequence["event_ids"]]
+            writer.writerow(
+                {
+                    "split": split,
+                    "run_id": sequence["run_id"],
+                    "bucket": sequence["bucket"],
+                    "start_ts": sequence["start_ts"],
+                    "end_ts": sequence["end_ts"],
+                    "label": sequence["label"],
+                    "event_count": len(event_ids),
+                    "sequence": " ".join(event_ids),
+                }
+            )
 
 
 def main() -> int:
@@ -207,10 +307,11 @@ def main() -> int:
     template_to_id: dict[str, int] = {}
     template_labels: dict[int, list[int]] = defaultdict(list)
 
-    for path in args.logs:
-        with open(path, "r", encoding="utf-8", errors="replace") as fh:
+    for path in expand_log_paths(args.logs):
+        default_run_id, default_service = infer_context_from_path(path, args.run_id)
+        with open(path, "r", encoding=detect_log_encoding(path), errors="replace") as fh:
             for line in fh:
-                event = read_log_line(line, args.run_id)
+                event = read_log_line(line, default_run_id, default_service)
                 if not event:
                     continue
                 timestamp = event.get("timestamp")
@@ -261,6 +362,17 @@ def main() -> int:
     write_sequence_file(out_dir / "train.txt", train)
     write_sequence_file(out_dir / "dev.txt", dev)
     write_sequence_file(out_dir / "test.txt", test)
+    write_sequence_file(out_dir / "all.txt", sequences)
+    all_meta_path = out_dir / "all_sequences.csv"
+    if all_meta_path.exists():
+        all_meta_path.unlink()
+    write_sequence_meta(all_meta_path, sequences, "all")
+    meta_path = out_dir / "sequences.csv"
+    if meta_path.exists():
+        meta_path.unlink()
+    write_sequence_meta(meta_path, train, "train")
+    write_sequence_meta(meta_path, dev, "dev")
+    write_sequence_meta(meta_path, test, "test")
 
     print(f"wrote {out_dir}")
     print(f"events={len(raw_events)} templates={len(template_to_id)} sequences={len(sequences)}")
@@ -270,4 +382,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

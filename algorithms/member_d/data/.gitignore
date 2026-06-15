@@ -3,5 +3,6 @@ kpi/processed/*
 logs/raw/*
 logs/processed/*
 labels/*
+runs/*
 
 !.gitignore
